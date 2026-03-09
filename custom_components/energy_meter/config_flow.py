@@ -126,13 +126,13 @@ class EnergyMeterConfigFlow(ConfigFlow, domain=DOMAIN):
             step_id="dual_tariff",
             data_schema=vol.Schema(
                 {
-                    vol.Required(CONF_DAY_RATE, default=2.64): selector.NumberSelector(
+                    vol.Required(CONF_DAY_RATE, default=4.32): selector.NumberSelector(
                         selector.NumberSelectorConfig(
                             min=0, max=100, step=0.01, mode="box",
                             unit_of_measurement="UAH/kWh",
                         )
                     ),
-                    vol.Required(CONF_NIGHT_RATE, default=1.32): selector.NumberSelector(
+                    vol.Required(CONF_NIGHT_RATE, default=2.16): selector.NumberSelector(
                         selector.NumberSelectorConfig(
                             min=0, max=100, step=0.01, mode="box",
                             unit_of_measurement="UAH/kWh",
@@ -174,7 +174,7 @@ class EnergyMeterConfigFlow(ConfigFlow, domain=DOMAIN):
             step_id="single_tariff",
             data_schema=vol.Schema(
                 {
-                    vol.Required(CONF_SINGLE_RATE, default=2.64): selector.NumberSelector(
+                    vol.Required(CONF_SINGLE_RATE, default=4.32): selector.NumberSelector(
                         selector.NumberSelectorConfig(
                             min=0, max=100, step=0.01, mode="box",
                             unit_of_measurement="UAH/kWh",
