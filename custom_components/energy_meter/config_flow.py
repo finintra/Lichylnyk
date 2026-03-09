@@ -192,7 +192,7 @@ class EnergyMeterConfigFlow(ConfigFlow, domain=DOMAIN):
             self._data.update(user_input)
             phase_count = self._data.get(CONF_PHASE_COUNT, PHASE_3)
             tariff = self._data.get(CONF_TARIFF_TYPE, TARIFF_SINGLE)
-            title = f"Energy Meter ({phase_count}P"
+            title = f"Лічильник ({phase_count}P"
             if tariff == TARIFF_DUAL:
                 title += ", Day/Night)"
             else:

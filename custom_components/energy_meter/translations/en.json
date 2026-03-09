@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "Energy Meter Setup",
+        "title": "Lichylnyk Setup",
         "description": "Configure your energy meter",
         "data": {
           "tariff_type": "Tariff type",
@@ -15,13 +15,20 @@
       },
       "entities": {
         "title": "Source Entities",
-        "description": "Select the Zigbee2MQTT entities from your energy meter",
+        "description": "Select the Zigbee2MQTT sensor entities from your energy meter device. Open your Z2M device page and find the corresponding entities below.",
         "data": {
-          "energy_entity": "Energy sensor (kWh)",
-          "power_entity": "Total power sensor (W)",
+          "energy_entity": "Energy (kWh)",
+          "power_entity": "Power (W)",
           "voltage_a_entity": "Voltage Phase A (V)",
           "voltage_b_entity": "Voltage Phase B (V)",
           "voltage_c_entity": "Voltage Phase C (V)"
+        },
+        "data_description": {
+          "energy_entity": "Total energy consumed sensor. In Zigbee2MQTT it is usually named 'energy' (e.g. sensor.meter_energy). It shows cumulative kWh.",
+          "power_entity": "Current power draw sensor. In Zigbee2MQTT it is usually named 'power' (e.g. sensor.meter_power). It shows real-time watts.",
+          "voltage_a_entity": "Voltage on Phase A. In Zigbee2MQTT it is usually named 'voltage_a' or just 'voltage' for single-phase meters (e.g. sensor.meter_voltage_a).",
+          "voltage_b_entity": "Voltage on Phase B. In Zigbee2MQTT it is usually named 'voltage_b' (e.g. sensor.meter_voltage_b). Only for 2- and 3-phase meters.",
+          "voltage_c_entity": "Voltage on Phase C. In Zigbee2MQTT it is usually named 'voltage_c' (e.g. sensor.meter_voltage_c). Only for 3-phase meters."
         }
       },
       "dual_tariff": {
@@ -44,7 +51,7 @@
         }
       },
       "initial_readings": {
-        "title": "Initial Meter Readings",
+        "title": "Current Meter Readings",
         "description": "Enter the current readings from your physical meter",
         "data": {
           "initial_day": "Day reading (kWh)",

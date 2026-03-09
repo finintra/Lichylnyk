@@ -5,7 +5,7 @@
 
 const TRANSLATIONS = {
   en: {
-    title: "Energy Meter",
+    title: "Lichylnyk",
     meter_reading: "Meter Reading",
     day: "Day",
     night: "Night",
@@ -907,7 +907,7 @@ customElements.define("energy-meter-card-editor", EnergyMeterCardEditor);
 window.customCards = window.customCards || [];
 window.customCards.push({
   type: "energy-meter-card",
-  name: "Energy Meter Card",
+  name: "Лічильник",
   description: "Digital power meter display with phase indicators, readings, and cost tracking",
   preview: true,
   documentationURL: "https://github.com/finintra/Lichylnyk",

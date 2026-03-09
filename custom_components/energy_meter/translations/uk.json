@@ -15,13 +15,20 @@
       },
       "entities": {
         "title": "Сенсори джерела",
-        "description": "Оберіть сенсори Zigbee2MQTT вашого лічильника",
+        "description": "Оберіть сенсори Zigbee2MQTT вашого лічильника. Відкрийте сторінку пристрою в Z2M та знайдіть відповідні сенсори нижче.",
         "data": {
-          "energy_entity": "Сенсор енергії (кВт·год)",
-          "power_entity": "Сенсор загальної потужності (Вт)",
+          "energy_entity": "Енергія (кВт·год)",
+          "power_entity": "Потужність (Вт)",
           "voltage_a_entity": "Напруга фази A (В)",
           "voltage_b_entity": "Напруга фази B (В)",
           "voltage_c_entity": "Напруга фази C (В)"
+        },
+        "data_description": {
+          "energy_entity": "Сенсор загальної спожитої енергії. В Zigbee2MQTT зазвичай називається 'energy' (напр. sensor.meter_energy). Показує накопичені кВт·год.",
+          "power_entity": "Сенсор поточного споживання. В Zigbee2MQTT зазвичай називається 'power' (напр. sensor.meter_power). Показує поточні Ватти.",
+          "voltage_a_entity": "Напруга фази A. В Zigbee2MQTT зазвичай називається 'voltage_a' або просто 'voltage' для однофазних лічильників (напр. sensor.meter_voltage_a).",
+          "voltage_b_entity": "Напруга фази B. В Zigbee2MQTT зазвичай називається 'voltage_b' (напр. sensor.meter_voltage_b). Тільки для 2- та 3-фазних лічильників.",
+          "voltage_c_entity": "Напруга фази C. В Zigbee2MQTT зазвичай називається 'voltage_c' (напр. sensor.meter_voltage_c). Тільки для 3-фазних лічильників."
         }
       },
       "dual_tariff": {
@@ -44,7 +51,7 @@
         }
       },
       "initial_readings": {
-        "title": "Початкові показники лічильника",
+        "title": "Поточні показники лічильника",
         "description": "Введіть поточні показники з вашого фізичного лічильника",
         "data": {
           "initial_day": "Денні показники (кВт·год)",

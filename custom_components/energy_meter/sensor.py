@@ -138,7 +138,7 @@ class EnergyMeterMainSensor(RestoreEntity, SensorEntity):
         """Return device info."""
         return {
             "identifiers": {(DOMAIN, self._entry.entry_id)},
-            "name": "Energy Meter",
+            "name": "Лічильник",
             "manufacturer": "Ourtop",
             "model": f"ATMS10013Z3 ({self._phase_count}P)",
         }
