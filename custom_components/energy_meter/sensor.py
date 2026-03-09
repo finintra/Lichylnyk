@@ -341,11 +341,16 @@ class EnergyMeterMainSensor(RestoreEntity, SensorEntity):
             # Reset energy tracking — counter starts from 0 after entering new readings
             self._last_energy = None
             self._stored["last_energy"] = None
-            # If no snapshot exists, initialize to entered readings (delta = 0)
-            if not self._stored.get("snapshot_time"):
-                self._stored["snapshot_day"] = self._reading_day
-                self._stored["snapshot_night"] = self._reading_night
-                self._stored["snapshot_total"] = self._reading_total
+            # Reset snapshot to new readings so "since report" starts from 0
+            self._stored["snapshot_day"] = self._reading_day
+            self._stored["snapshot_night"] = self._reading_night
+            self._stored["snapshot_total"] = self._reading_total
+            self._stored["snapshot_time"] = datetime.now().isoformat()
+            # Reset daily checkpoint too
+            self._stored["daily_day"] = self._reading_day
+            self._stored["daily_night"] = self._reading_night
+            self._stored["daily_total"] = self._reading_total
+            self._stored["daily_date"] = datetime.now().strftime("%Y-%m-%d")
             # Persist
             self.hass.async_create_task(self._store.async_save(dict(self._stored)))
         self.async_write_ha_state()
