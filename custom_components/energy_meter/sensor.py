@@ -15,7 +15,7 @@ from homeassistant.const import UnitOfEnergy
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.event import async_track_state_change_event
+from homeassistant.helpers.event import async_track_state_change_event, async_track_time_change
 from homeassistant.helpers.restore_state import RestoreEntity
 
 from .const import (
@@ -121,6 +121,14 @@ class EnergyMeterMainSensor(RestoreEntity, SensorEntity):
             self._stored["snapshot_night"] = self._reading_night
             self._stored["snapshot_total"] = self._reading_total
 
+        # Daily checkpoint for "last 24h" consumption
+        today = datetime.now().strftime("%Y-%m-%d")
+        if self._stored.get("daily_date") != today:
+            self._stored["daily_day"] = self._reading_day
+            self._stored["daily_night"] = self._reading_night
+            self._stored["daily_total"] = self._reading_total
+            self._stored["daily_date"] = today
+
         self._voltages: dict[str, float | None] = {k: None for k in VOLTAGE_ATTRS[:self._phase_count]}
         self._power: float | None = None
         self._unsub_listeners: list = []
@@ -191,6 +199,19 @@ class EnergyMeterMainSensor(RestoreEntity, SensorEntity):
             attrs["cost_total"] = round(attrs["delta_total"] * rate, 2)
             attrs["single_rate"] = rate
 
+        # Daily consumption (since midnight)
+        daily_day = self._stored.get("daily_day", self._reading_day)
+        daily_night = self._stored.get("daily_night", self._reading_night)
+        daily_total = self._stored.get("daily_total", self._reading_total)
+        if self._config.get(CONF_TARIFF_TYPE) == TARIFF_DUAL:
+            attrs["today_day"] = round(self._reading_day - daily_day, 2)
+            attrs["today_night"] = round(self._reading_night - daily_night, 2)
+            attrs["today_total"] = round(
+                (self._reading_day + self._reading_night) - (daily_day + daily_night), 2
+            )
+        else:
+            attrs["today_total"] = round(self._reading_total - daily_total, 2)
+
         # Voltage info per configured phase
         for attr_name in VOLTAGE_ATTRS[:self._phase_count]:
             attrs[attr_name] = self._voltages.get(attr_name)
@@ -225,6 +246,13 @@ class EnergyMeterMainSensor(RestoreEntity, SensorEntity):
         self._unsub_listeners.append(
             async_dispatcher_connect(
                 self.hass, f"{DOMAIN}_settings_updated", self._handle_settings_updated
+            )
+        )
+
+        # Reset daily checkpoint at midnight
+        self._unsub_listeners.append(
+            async_track_time_change(
+                self.hass, self._handle_midnight, hour=0, minute=0, second=0
             )
         )
 
@@ -278,6 +306,16 @@ class EnergyMeterMainSensor(RestoreEntity, SensorEntity):
                 self._last_energy = float(energy_state.state)
             except (ValueError, TypeError):
                 pass
+
+    @callback
+    def _handle_midnight(self, now) -> None:
+        """Reset daily checkpoint at midnight."""
+        self._stored["daily_day"] = self._reading_day
+        self._stored["daily_night"] = self._reading_night
+        self._stored["daily_total"] = self._reading_total
+        self._stored["daily_date"] = now.strftime("%Y-%m-%d")
+        self.hass.async_create_task(self._store.async_save(dict(self._stored)))
+        self.async_write_ha_state()
 
     @callback
     def _handle_snapshot_taken(self) -> None:

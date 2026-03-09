@@ -10,6 +10,7 @@ const TRANSLATIONS = {
     day: "Day",
     night: "Night",
     total: "Total",
+    today: "Today",
     since_report: "Since Report",
     cost: "Cost",
     current_tariff: "Current Tariff",
@@ -43,6 +44,7 @@ const TRANSLATIONS = {
     day: "\u0414\u0435\u043d\u044c",
     night: "\u041d\u0456\u0447",
     total: "\u0412\u0441\u044c\u043e\u0433\u043e",
+    today: "\u0417\u0430 \u0441\u044c\u043e\u0433\u043e\u0434\u043d\u0456",
     since_report: "\u0417 \u043e\u0441\u0442\u0430\u043d\u043d\u044c\u043e\u0433\u043e \u0437\u0432\u0456\u0442\u0443",
     cost: "\u0412\u0430\u0440\u0442\u0456\u0441\u0442\u044c",
     current_tariff: "\u041f\u043e\u0442\u043e\u0447\u043d\u0438\u0439 \u0442\u0430\u0440\u0438\u0444",
@@ -278,6 +280,38 @@ class EnergyMeterCard extends HTMLElement {
                 <span class="reading-icon"></span>
                 <span class="reading-label">${this._t("total")}:</span>
                 <span class="lcd-value lcd-total">${this._fmt(a.reading_total)}</span>
+                <span class="reading-unit">${this._t("kwh")}</span>
+              </div>
+            `}
+          </div>
+
+          <!-- Today's consumption -->
+          <div class="section">
+            <div class="section-title">${this._t("today")}</div>
+            ${isDual ? `
+              <div class="reading-row">
+                <span class="reading-icon"><ha-icon icon="mdi:white-balance-sunny" style="--mdc-icon-size:16px;color:#ffa726;"></ha-icon></span>
+                <span class="reading-label">${this._t("day")}:</span>
+                <span class="lcd-value lcd-today">${this._fmt(a.today_day)}</span>
+                <span class="reading-unit">${this._t("kwh")}</span>
+              </div>
+              <div class="reading-row">
+                <span class="reading-icon"><ha-icon icon="mdi:weather-night" style="--mdc-icon-size:16px;color:#42a5f5;"></ha-icon></span>
+                <span class="reading-label">${this._t("night")}:</span>
+                <span class="lcd-value lcd-today">${this._fmt(a.today_night)}</span>
+                <span class="reading-unit">${this._t("kwh")}</span>
+              </div>
+              <div class="reading-row reading-total">
+                <span class="reading-icon"></span>
+                <span class="reading-label">${this._t("total")}:</span>
+                <span class="lcd-value lcd-today">${this._fmt(a.today_total)}</span>
+                <span class="reading-unit">${this._t("kwh")}</span>
+              </div>
+            ` : `
+              <div class="reading-row reading-total">
+                <span class="reading-icon"></span>
+                <span class="reading-label">${this._t("total")}:</span>
+                <span class="lcd-value lcd-today">${this._fmt(a.today_total)}</span>
                 <span class="reading-unit">${this._t("kwh")}</span>
               </div>
             `}
@@ -599,6 +633,11 @@ class EnergyMeterCard extends HTMLElement {
         text-shadow: 0 0 6px rgba(0, 229, 255, 0.3);
         background: rgba(0, 229, 255, 0.05);
         font-size: 1.4em;
+      }
+      .lcd-today {
+        color: #ab47bc;
+        text-shadow: 0 0 6px rgba(171, 71, 188, 0.3);
+        background: rgba(171, 71, 188, 0.05);
       }
       .reading-total {
         margin-top: 4px;
