@@ -5,3 +5,68 @@ reset_readings:
 take_snapshot:
   name: Take snapshot
   description: Take a snapshot of current readings for delta calculation.
+
+update_settings:
+  name: Update settings
+  description: Update tariff rates or initial readings.
+  fields:
+    day_rate:
+      name: Day rate
+      description: Day tariff rate (UAH/kWh)
+      example: 4.32
+      selector:
+        number:
+          min: 0
+          max: 100
+          step: 0.01
+          mode: box
+    night_rate:
+      name: Night rate
+      description: Night tariff rate (UAH/kWh)
+      example: 2.16
+      selector:
+        number:
+          min: 0
+          max: 100
+          step: 0.01
+          mode: box
+    single_rate:
+      name: Single rate
+      description: Single tariff rate (UAH/kWh)
+      example: 4.32
+      selector:
+        number:
+          min: 0
+          max: 100
+          step: 0.01
+          mode: box
+    initial_day:
+      name: Initial day reading
+      description: Day meter reading (kWh)
+      example: 12000
+      selector:
+        number:
+          min: 0
+          max: 999999
+          step: 0.01
+          mode: box
+    initial_night:
+      name: Initial night reading
+      description: Night meter reading (kWh)
+      example: 5000
+      selector:
+        number:
+          min: 0
+          max: 999999
+          step: 0.01
+          mode: box
+    initial_total:
+      name: Initial total reading
+      description: Total meter reading (kWh)
+      example: 17000
+      selector:
+        number:
+          min: 0
+          max: 999999
+          step: 0.01
+          mode: box

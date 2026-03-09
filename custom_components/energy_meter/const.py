@@ -45,3 +45,4 @@ STORAGE_VERSION = 1
 # Services
 SERVICE_RESET_READINGS = "reset_readings"
 SERVICE_SNAPSHOT = "take_snapshot"
+SERVICE_UPDATE_SETTINGS = "update_settings"

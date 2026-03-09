@@ -22,6 +22,7 @@ from .const import (
     STORAGE_VERSION,
     SERVICE_RESET_READINGS,
     SERVICE_SNAPSHOT,
+    SERVICE_UPDATE_SETTINGS,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -92,9 +93,29 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             await data["store"].async_save(stored)
         async_dispatcher_send(hass, f"{DOMAIN}_snapshot_taken")
 
+    async def handle_update_settings(call: ServiceCall) -> None:
+        """Update tariff rates or readings from the card."""
+        svc_data = dict(call.data)
+        for entry_obj in hass.config_entries.async_entries(DOMAIN):
+            new_data = dict(entry_obj.data)
+            # Update only provided fields
+            for key in (
+                "day_rate", "night_rate", "single_rate",
+                "initial_day", "initial_night", "initial_total",
+            ):
+                if key in svc_data:
+                    new_data[key] = float(svc_data[key])
+            hass.config_entries.async_update_entry(entry_obj, data=new_data)
+            # Also update in-memory config
+            eid = entry_obj.entry_id
+            if eid in hass.data[DOMAIN] and isinstance(hass.data[DOMAIN][eid], dict):
+                hass.data[DOMAIN][eid]["config"] = new_data
+        async_dispatcher_send(hass, f"{DOMAIN}_settings_updated")
+
     if not hass.services.has_service(DOMAIN, SERVICE_RESET_READINGS):
         hass.services.async_register(DOMAIN, SERVICE_RESET_READINGS, handle_reset)
         hass.services.async_register(DOMAIN, SERVICE_SNAPSHOT, handle_snapshot)
+        hass.services.async_register(DOMAIN, SERVICE_UPDATE_SETTINGS, handle_update_settings)
 
     entry.async_on_unload(entry.add_update_listener(async_update_options))
 

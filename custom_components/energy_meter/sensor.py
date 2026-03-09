@@ -202,10 +202,15 @@ class EnergyMeterMainSensor(RestoreEntity, SensorEntity):
         """Subscribe to source entity changes."""
         await super().async_added_to_hass()
 
-        # Listen for snapshot events to refresh state
+        # Listen for snapshot and settings events to refresh state
         self._unsub_listeners.append(
             async_dispatcher_connect(
                 self.hass, f"{DOMAIN}_snapshot_taken", self._handle_snapshot_taken
+            )
+        )
+        self._unsub_listeners.append(
+            async_dispatcher_connect(
+                self.hass, f"{DOMAIN}_settings_updated", self._handle_settings_updated
             )
         )
 
@@ -263,6 +268,14 @@ class EnergyMeterMainSensor(RestoreEntity, SensorEntity):
     @callback
     def _handle_snapshot_taken(self) -> None:
         """Handle snapshot taken — refresh state."""
+        self.async_write_ha_state()
+
+    @callback
+    def _handle_settings_updated(self) -> None:
+        """Handle settings update — reload config and refresh state."""
+        entry_data = self.hass.data.get(DOMAIN, {}).get(self._entry.entry_id)
+        if entry_data and isinstance(entry_data, dict):
+            self._config = entry_data["config"]
         self.async_write_ha_state()
 
     async def async_will_remove_from_hass(self) -> None:

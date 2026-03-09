@@ -21,30 +21,54 @@ const TRANSLATIONS = {
     watts: "W",
     phase: "Phase",
     last_report: "Last report",
-    no_data: "—",
+    no_data: "\u2014",
     not_found: "Entity not found",
     night_schedule: "Night",
+    settings: "Settings",
+    day_rate: "Day rate",
+    night_rate: "Night rate",
+    single_rate: "Rate",
+    initial_day: "Day reading",
+    initial_night: "Night reading",
+    initial_total: "Total reading",
+    save: "Save",
+    saved: "Saved!",
+    uah_kwh: "UAH/kWh",
+    rates: "Tariff rates",
+    readings: "Initial readings",
   },
   uk: {
-    title: "Лічильник",
-    meter_reading: "Показники лічильника",
-    day: "День",
-    night: "Ніч",
-    total: "Всього",
-    since_report: "З останнього звіту",
-    cost: "Вартість",
-    current_tariff: "Поточний тариф",
-    power: "Потужність",
-    report: "Подати звіт",
-    report_confirm: "Подати звіт? Поточні показники будуть збережені.",
-    kwh: "кВт·год",
-    uah: "грн",
-    watts: "Вт",
-    phase: "Фаза",
-    last_report: "Останній звіт",
-    no_data: "—",
-    not_found: "Сутність не знайдена",
-    night_schedule: "Ніч",
+    title: "\u041b\u0456\u0447\u0438\u043b\u044c\u043d\u0438\u043a",
+    meter_reading: "\u041f\u043e\u043a\u0430\u0437\u043d\u0438\u043a\u0438 \u043b\u0456\u0447\u0438\u043b\u044c\u043d\u0438\u043a\u0430",
+    day: "\u0414\u0435\u043d\u044c",
+    night: "\u041d\u0456\u0447",
+    total: "\u0412\u0441\u044c\u043e\u0433\u043e",
+    since_report: "\u0417 \u043e\u0441\u0442\u0430\u043d\u043d\u044c\u043e\u0433\u043e \u0437\u0432\u0456\u0442\u0443",
+    cost: "\u0412\u0430\u0440\u0442\u0456\u0441\u0442\u044c",
+    current_tariff: "\u041f\u043e\u0442\u043e\u0447\u043d\u0438\u0439 \u0442\u0430\u0440\u0438\u0444",
+    power: "\u041f\u043e\u0442\u0443\u0436\u043d\u0456\u0441\u0442\u044c",
+    report: "\u041f\u043e\u0434\u0430\u0442\u0438 \u0437\u0432\u0456\u0442",
+    report_confirm: "\u041f\u043e\u0434\u0430\u0442\u0438 \u0437\u0432\u0456\u0442? \u041f\u043e\u0442\u043e\u0447\u043d\u0456 \u043f\u043e\u043a\u0430\u0437\u043d\u0438\u043a\u0438 \u0431\u0443\u0434\u0443\u0442\u044c \u0437\u0431\u0435\u0440\u0435\u0436\u0435\u043d\u0456.",
+    kwh: "\u043a\u0412\u0442\u00b7\u0433\u043e\u0434",
+    uah: "\u0433\u0440\u043d",
+    watts: "\u0412\u0442",
+    phase: "\u0424\u0430\u0437\u0430",
+    last_report: "\u041e\u0441\u0442\u0430\u043d\u043d\u0456\u0439 \u0437\u0432\u0456\u0442",
+    no_data: "\u2014",
+    not_found: "\u0421\u0443\u0442\u043d\u0456\u0441\u0442\u044c \u043d\u0435 \u0437\u043d\u0430\u0439\u0434\u0435\u043d\u0430",
+    night_schedule: "\u041d\u0456\u0447",
+    settings: "\u041d\u0430\u043b\u0430\u0448\u0442\u0443\u0432\u0430\u043d\u043d\u044f",
+    day_rate: "\u0414\u0435\u043d\u043d\u0438\u0439 \u0442\u0430\u0440\u0438\u0444",
+    night_rate: "\u041d\u0456\u0447\u043d\u0438\u0439 \u0442\u0430\u0440\u0438\u0444",
+    single_rate: "\u0422\u0430\u0440\u0438\u0444",
+    initial_day: "\u041f\u043e\u043a\u0430\u0437\u043d\u0438\u043a \u0434\u0435\u043d\u044c",
+    initial_night: "\u041f\u043e\u043a\u0430\u0437\u043d\u0438\u043a \u043d\u0456\u0447",
+    initial_total: "\u041f\u043e\u043a\u0430\u0437\u043d\u0438\u043a \u0437\u0430\u0433\u0430\u043b\u044c\u043d\u0438\u0439",
+    save: "\u0417\u0431\u0435\u0440\u0435\u0433\u0442\u0438",
+    saved: "\u0417\u0431\u0435\u0440\u0435\u0436\u0435\u043d\u043e!",
+    uah_kwh: "\u0433\u0440\u043d/\u043a\u0412\u0442\u00b7\u0433\u043e\u0434",
+    rates: "\u0422\u0430\u0440\u0438\u0444\u0438",
+    readings: "\u041f\u043e\u0447\u0430\u0442\u043a\u043e\u0432\u0456 \u043f\u043e\u043a\u0430\u0437\u043d\u0438\u043a\u0438",
   },
 };
 
@@ -54,6 +78,7 @@ class EnergyMeterCard extends HTMLElement {
     this.attachShadow({ mode: "open" });
     this._config = {};
     this._hass = null;
+    this._settingsOpen = false;
   }
 
   set hass(hass) {
@@ -117,6 +142,40 @@ class EnergyMeterCard extends HTMLElement {
     await this._hass.callService("energy_meter", "take_snapshot", {});
   }
 
+  async _handleSaveSettings() {
+    if (!this._hass) return;
+    const root = this.shadowRoot;
+    const data = {};
+
+    const dayRate = root.getElementById("inp_day_rate");
+    const nightRate = root.getElementById("inp_night_rate");
+    const singleRate = root.getElementById("inp_single_rate");
+    const initDay = root.getElementById("inp_initial_day");
+    const initNight = root.getElementById("inp_initial_night");
+    const initTotal = root.getElementById("inp_initial_total");
+
+    if (dayRate) data.day_rate = parseFloat(dayRate.value);
+    if (nightRate) data.night_rate = parseFloat(nightRate.value);
+    if (singleRate) data.single_rate = parseFloat(singleRate.value);
+    if (initDay) data.initial_day = parseFloat(initDay.value);
+    if (initNight) data.initial_night = parseFloat(initNight.value);
+    if (initTotal) data.initial_total = parseFloat(initTotal.value);
+
+    await this._hass.callService("energy_meter", "update_settings", data);
+
+    // Flash "Saved!" feedback
+    const saveBtn = root.getElementById("saveBtn");
+    if (saveBtn) {
+      const orig = saveBtn.textContent;
+      saveBtn.textContent = this._t("saved");
+      saveBtn.classList.add("saved");
+      setTimeout(() => {
+        saveBtn.textContent = orig;
+        saveBtn.classList.remove("saved");
+      }, 1500);
+    }
+  }
+
   _render() {
     if (!this._hass || !this._config.entity) return;
 
@@ -159,13 +218,18 @@ class EnergyMeterCard extends HTMLElement {
               <ha-icon icon="mdi:flash" style="--mdc-icon-size:20px;color:#ffd700;"></ha-icon>
               <span>${this._t("title")}</span>
             </div>
-            ${isDual ? `
-              <div class="tariff-badge ${isNight ? "night" : "day"}">
-                <ha-icon icon="${isNight ? "mdi:weather-night" : "mdi:white-balance-sunny"}"
-                  style="--mdc-icon-size:16px;"></ha-icon>
-                <span>${isNight ? this._t("night") : this._t("day")}</span>
-              </div>
-            ` : ""}
+            <div class="header-right">
+              ${isDual ? `
+                <div class="tariff-badge ${isNight ? "night" : "day"}">
+                  <ha-icon icon="${isNight ? "mdi:weather-night" : "mdi:white-balance-sunny"}"
+                    style="--mdc-icon-size:16px;"></ha-icon>
+                  <span>${isNight ? this._t("night") : this._t("day")}</span>
+                </div>
+              ` : ""}
+              <button class="settings-toggle" id="settingsToggle">
+                <ha-icon icon="mdi:cog" style="--mdc-icon-size:18px;"></ha-icon>
+              </button>
+            </div>
           </div>
 
           <!-- Phase indicators -->
@@ -219,7 +283,7 @@ class EnergyMeterCard extends HTMLElement {
                 <ha-icon icon="mdi:white-balance-sunny" style="--mdc-icon-size:14px;color:#ffa726;"></ha-icon>
                 <span class="delta-label">${this._t("day")}:</span>
                 <span class="delta-kwh">${this._fmt(a.delta_day)}</span>
-                <span class="delta-mult">× ${this._fmt(a.day_rate)}</span>
+                <span class="delta-mult">\u00d7 ${this._fmt(a.day_rate)}</span>
                 <span class="delta-eq">=</span>
                 <span class="delta-cost">${this._fmt(a.cost_day)} ${this._t("uah")}</span>
               </div>
@@ -227,7 +291,7 @@ class EnergyMeterCard extends HTMLElement {
                 <ha-icon icon="mdi:weather-night" style="--mdc-icon-size:14px;color:#42a5f5;"></ha-icon>
                 <span class="delta-label">${this._t("night")}:</span>
                 <span class="delta-kwh">${this._fmt(a.delta_night)}</span>
-                <span class="delta-mult">× ${this._fmt(a.night_rate)}</span>
+                <span class="delta-mult">\u00d7 ${this._fmt(a.night_rate)}</span>
                 <span class="delta-eq">=</span>
                 <span class="delta-cost">${this._fmt(a.cost_night)} ${this._t("uah")}</span>
               </div>
@@ -244,7 +308,7 @@ class EnergyMeterCard extends HTMLElement {
                 <span class="delta-total-icon"></span>
                 <span class="delta-label">${this._t("total")}:</span>
                 <span class="delta-kwh">${this._fmt(a.delta_total)}</span>
-                <span class="delta-mult">× ${this._fmt(a.single_rate)}</span>
+                <span class="delta-mult">\u00d7 ${this._fmt(a.single_rate)}</span>
                 <span class="delta-eq">=</span>
                 <span class="delta-cost delta-cost-total">${this._fmt(a.cost_total)} ${this._t("uah")}</span>
               </div>
@@ -252,10 +316,9 @@ class EnergyMeterCard extends HTMLElement {
           </div>
 
           ${isDual ? `
-          <!-- Night schedule -->
           <div class="schedule-row">
             <ha-icon icon="mdi:clock-outline" style="--mdc-icon-size:14px;color:#78909c;"></ha-icon>
-            <span>${this._t("night_schedule")}: ${a.night_start || "23:00"} — ${a.night_end || "07:00"}</span>
+            <span>${this._t("night_schedule")}: ${a.night_start || "23:00"} \u2014 ${a.night_end || "07:00"}</span>
           </div>
           ` : ""}
 
@@ -276,15 +339,70 @@ class EnergyMeterCard extends HTMLElement {
             ${this._t("last_report")}: ${this._fmtDate(a.last_snapshot)}
           </div>
 
+          <!-- Settings panel (collapsible) -->
+          <div class="settings-panel" id="settingsPanel" style="display:${this._settingsOpen ? "block" : "none"};">
+            <div class="section-title">${this._t("settings")}</div>
+
+            <div class="settings-group">
+              <div class="settings-group-title">${this._t("rates")}</div>
+              ${isDual ? `
+                <div class="settings-row">
+                  <label>${this._t("day_rate")} (${this._t("uah_kwh")})</label>
+                  <input type="number" id="inp_day_rate" step="0.01" min="0" value="${a.day_rate || 4.32}">
+                </div>
+                <div class="settings-row">
+                  <label>${this._t("night_rate")} (${this._t("uah_kwh")})</label>
+                  <input type="number" id="inp_night_rate" step="0.01" min="0" value="${a.night_rate || 2.16}">
+                </div>
+              ` : `
+                <div class="settings-row">
+                  <label>${this._t("single_rate")} (${this._t("uah_kwh")})</label>
+                  <input type="number" id="inp_single_rate" step="0.01" min="0" value="${a.single_rate || 4.32}">
+                </div>
+              `}
+            </div>
+
+            <div class="settings-group">
+              <div class="settings-group-title">${this._t("readings")}</div>
+              ${isDual ? `
+                <div class="settings-row">
+                  <label>${this._t("initial_day")} (${this._t("kwh")})</label>
+                  <input type="number" id="inp_initial_day" step="0.01" min="0" value="${a.reading_day || 0}">
+                </div>
+                <div class="settings-row">
+                  <label>${this._t("initial_night")} (${this._t("kwh")})</label>
+                  <input type="number" id="inp_initial_night" step="0.01" min="0" value="${a.reading_night || 0}">
+                </div>
+              ` : `
+                <div class="settings-row">
+                  <label>${this._t("initial_total")} (${this._t("kwh")})</label>
+                  <input type="number" id="inp_initial_total" step="0.01" min="0" value="${a.reading_total || 0}">
+                </div>
+              `}
+            </div>
+
+            <button class="save-btn" id="saveBtn">${this._t("save")}</button>
+          </div>
+
         </div>
       </ha-card>
     `;
 
-    // Bind report button
+    // Bind events
     const btn = this.shadowRoot.getElementById("reportBtn");
-    if (btn) {
-      btn.addEventListener("click", () => this._handleReport());
+    if (btn) btn.addEventListener("click", () => this._handleReport());
+
+    const toggle = this.shadowRoot.getElementById("settingsToggle");
+    if (toggle) {
+      toggle.addEventListener("click", () => {
+        this._settingsOpen = !this._settingsOpen;
+        const panel = this.shadowRoot.getElementById("settingsPanel");
+        if (panel) panel.style.display = this._settingsOpen ? "block" : "none";
+      });
     }
+
+    const saveBtn = this.shadowRoot.getElementById("saveBtn");
+    if (saveBtn) saveBtn.addEventListener("click", () => this._handleSaveSettings());
   }
 
   _getStyles() {
@@ -317,6 +435,23 @@ class EnergyMeterCard extends HTMLElement {
         color: #ffffff;
         text-transform: uppercase;
         letter-spacing: 1px;
+      }
+      .header-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .settings-toggle {
+        background: none;
+        border: none;
+        color: #607d8b;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 50%;
+        transition: color 0.2s;
+      }
+      .settings-toggle:hover {
+        color: #90a4ae;
       }
       .tariff-badge {
         display: flex;
@@ -563,6 +698,80 @@ class EnergyMeterCard extends HTMLElement {
         font-size: 0.72em;
         color: #546e7a;
         margin-top: 8px;
+      }
+
+      /* Settings panel */
+      .settings-panel {
+        margin-top: 12px;
+        background: rgba(0, 0, 0, 0.25);
+        border-radius: 8px;
+        padding: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .settings-group {
+        margin-bottom: 12px;
+      }
+      .settings-group:last-of-type {
+        margin-bottom: 14px;
+      }
+      .settings-group-title {
+        font-size: 0.72em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #607d8b;
+        margin-bottom: 8px;
+      }
+      .settings-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+      .settings-row label {
+        font-size: 0.85em;
+        color: #90a4ae;
+      }
+      .settings-row input {
+        width: 110px;
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 6px;
+        color: #e0e0e0;
+        padding: 6px 10px;
+        font-size: 0.9em;
+        font-family: 'Courier New', monospace;
+        text-align: right;
+      }
+      .settings-row input:focus {
+        outline: none;
+        border-color: #00ccff;
+        box-shadow: 0 0 4px rgba(0, 204, 255, 0.3);
+      }
+      .save-btn {
+        width: 100%;
+        background: linear-gradient(180deg, #2d6a3a, #1a4025);
+        color: #66ff88;
+        border: 1px solid #3a8a4a;
+        border-radius: 8px;
+        padding: 10px;
+        cursor: pointer;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.8em;
+        letter-spacing: 1px;
+        transition: all 0.15s;
+        font-family: inherit;
+      }
+      .save-btn:hover {
+        background: linear-gradient(180deg, #3a8a4a, #2d6a3a);
+        border-color: #4aaa5a;
+      }
+      .save-btn:active {
+        transform: translateY(1px);
+      }
+      .save-btn.saved {
+        background: #2d6a3a;
+        color: #aaffbb;
       }
     `;
   }
