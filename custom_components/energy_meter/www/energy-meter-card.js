@@ -85,29 +85,10 @@ class EnergyMeterCard extends HTMLElement {
     this._hass = hass;
     this._lang = hass.language === "uk" ? "uk" : "en";
 
-    // Skip re-render if user is actively editing an input
-    const active = this.shadowRoot && this.shadowRoot.activeElement;
-    if (active && active.tagName === "INPUT") return;
-
-    // Save input values before re-render if settings panel is open
-    const savedInputs = {};
-    if (this._settingsOpen) {
-      const ids = ["inp_day_rate", "inp_night_rate", "inp_single_rate", "inp_initial_day", "inp_initial_night", "inp_initial_total"];
-      for (const id of ids) {
-        const el = this.shadowRoot && this.shadowRoot.getElementById(id);
-        if (el) savedInputs[id] = el.value;
-      }
-    }
+    // Don't re-render while settings panel is open — protects user input
+    if (this._settingsOpen) return;
 
     this._render();
-
-    // Restore input values after re-render
-    if (this._settingsOpen) {
-      for (const [id, val] of Object.entries(savedInputs)) {
-        const el = this.shadowRoot.getElementById(id);
-        if (el) el.value = val;
-      }
-    }
   }
 
   setConfig(config) {
@@ -425,8 +406,13 @@ class EnergyMeterCard extends HTMLElement {
     if (toggle) {
       toggle.addEventListener("click", () => {
         this._settingsOpen = !this._settingsOpen;
-        const panel = this.shadowRoot.getElementById("settingsPanel");
-        if (panel) panel.style.display = this._settingsOpen ? "block" : "none";
+        if (!this._settingsOpen) {
+          // Re-render with fresh values when closing settings
+          this._render();
+        } else {
+          const panel = this.shadowRoot.getElementById("settingsPanel");
+          if (panel) panel.style.display = "block";
+        }
       });
     }
 
