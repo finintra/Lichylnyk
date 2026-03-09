@@ -41,10 +41,15 @@ CARD_URL = f"{CARD_PATH}?v={_VERSION}"
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Set up Energy Meter domain — register frontend card."""
+    """Set up Energy Meter domain."""
     hass.data.setdefault(DOMAIN, {})
+    return True
 
-    # Register frontend card early (before config entries)
+
+async def _register_card(hass: HomeAssistant) -> None:
+    """Register frontend card (once)."""
+    if hass.data[DOMAIN].get("frontend_registered"):
+        return
     try:
         from homeassistant.components.http import StaticPathConfig
         await hass.http.async_register_static_paths(
@@ -53,14 +58,16 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     except (ImportError, AttributeError):
         hass.http.register_static_path(CARD_PATH, CARD_FILE, cache_headers=False)
     add_extra_js_url(hass, CARD_URL)
-    _LOGGER.info("Energy Meter card registered at %s", CARD_URL)
-
-    return True
+    hass.data[DOMAIN]["frontend_registered"] = True
+    _LOGGER.info("Lichylnyk card registered at %s", CARD_URL)
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Energy Meter from a config entry."""
     hass.data.setdefault(DOMAIN, {})
+
+    # Register frontend card on first config entry setup
+    await _register_card(hass)
 
     store = Store(hass, STORAGE_VERSION, f"{STORAGE_KEY}_{entry.entry_id}")
     stored = await store.async_load() or {}
