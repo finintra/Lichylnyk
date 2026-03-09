@@ -7,6 +7,10 @@
         "data": {
           "tariff_type": "Tariff type",
           "phase_count": "Number of phases"
+        },
+        "data_description": {
+          "tariff_type": "Choose single or dual (day/night) tariff",
+          "phase_count": "Number of phases on your meter"
         }
       },
       "entities": {
