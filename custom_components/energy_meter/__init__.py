@@ -2,11 +2,13 @@
 from __future__ import annotations
 
 import logging
+import os
 from datetime import datetime
 
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.components.frontend import add_extra_js_url
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.storage import Store
@@ -23,10 +25,19 @@ _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS = ["sensor"]
 
+CARD_URL = "/energy_meter/energy-meter-card.js"
+CARD_FILE = os.path.join(os.path.dirname(__file__), "www", "energy-meter-card.js")
+
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Energy Meter from a config entry."""
     hass.data.setdefault(DOMAIN, {})
+
+    # Register frontend card (once)
+    if "frontend_registered" not in hass.data[DOMAIN]:
+        hass.data[DOMAIN]["frontend_registered"] = True
+        hass.http.register_static_path(CARD_URL, CARD_FILE, cache_headers=False)
+        add_extra_js_url(hass, CARD_URL)
 
     store = Store(hass, STORAGE_VERSION, f"{STORAGE_KEY}_{entry.entry_id}")
     stored = await store.async_load() or {}
