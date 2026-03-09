@@ -35,7 +35,7 @@ const TRANSLATIONS = {
     saved: "Saved!",
     uah_kwh: "UAH/kWh",
     rates: "Tariff rates",
-    readings: "Initial readings",
+    readings: "Current readings",
   },
   uk: {
     title: "\u041b\u0456\u0447\u0438\u043b\u044c\u043d\u0438\u043a",
@@ -68,7 +68,7 @@ const TRANSLATIONS = {
     saved: "\u0417\u0431\u0435\u0440\u0435\u0436\u0435\u043d\u043e!",
     uah_kwh: "\u0433\u0440\u043d/\u043a\u0412\u0442\u00b7\u0433\u043e\u0434",
     rates: "\u0422\u0430\u0440\u0438\u0444\u0438",
-    readings: "\u041f\u043e\u0447\u0430\u0442\u043a\u043e\u0432\u0456 \u043f\u043e\u043a\u0430\u0437\u043d\u0438\u043a\u0438",
+    readings: "\u041f\u043e\u0442\u043e\u0447\u043d\u0456 \u043f\u043e\u043a\u0430\u0437\u043d\u0438\u043a\u0438",
   },
 };
 
@@ -337,6 +337,12 @@ class EnergyMeterCard extends HTMLElement {
 
           <div class="last-report">
             ${this._t("last_report")}: ${this._fmtDate(a.last_snapshot)}
+            ${a.last_snapshot && isDual ? `
+              <br>${this._t("day")}: ${this._fmt(a.snapshot_day)} · ${this._t("night")}: ${this._fmt(a.snapshot_night)}
+            ` : ""}
+            ${a.last_snapshot && !isDual ? `
+              <br>${this._t("total")}: ${this._fmt(a.snapshot_total)}
+            ` : ""}
           </div>
 
           <!-- Settings panel (collapsible) -->

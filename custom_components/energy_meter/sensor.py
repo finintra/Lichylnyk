@@ -110,6 +110,17 @@ class EnergyMeterMainSensor(RestoreEntity, SensorEntity):
         self._reading_total: float = stored.get("reading_total", config.get(CONF_INITIAL_TOTAL, 0.0))
         self._last_energy: float | None = stored.get("last_energy")
 
+        # Ensure readings are persisted in stored dict (for snapshot service)
+        self._stored["reading_day"] = self._reading_day
+        self._stored["reading_night"] = self._reading_night
+        self._stored["reading_total"] = self._reading_total
+
+        # If no snapshot exists, set snapshot = initial readings (delta starts at 0)
+        if "snapshot_time" not in self._stored:
+            self._stored["snapshot_day"] = self._reading_day
+            self._stored["snapshot_night"] = self._reading_night
+            self._stored["snapshot_total"] = self._reading_total
+
         self._voltages: dict[str, float | None] = {k: None for k in VOLTAGE_ATTRS[:self._phase_count]}
         self._power: float | None = None
         self._unsub_listeners: list = []
@@ -188,6 +199,9 @@ class EnergyMeterMainSensor(RestoreEntity, SensorEntity):
 
         if snap_time:
             attrs["last_snapshot"] = snap_time
+            attrs["snapshot_day"] = snap_day
+            attrs["snapshot_night"] = snap_night
+            attrs["snapshot_total"] = snap_total
 
         # Power available if any voltage > 50V
         power_on = any(
@@ -272,10 +286,30 @@ class EnergyMeterMainSensor(RestoreEntity, SensorEntity):
 
     @callback
     def _handle_settings_updated(self) -> None:
-        """Handle settings update — reload config and refresh state."""
+        """Handle settings update — reload config, update readings, refresh state."""
         entry_data = self.hass.data.get(DOMAIN, {}).get(self._entry.entry_id)
         if entry_data and isinstance(entry_data, dict):
             self._config = entry_data["config"]
+            cfg = self._config
+            if CONF_INITIAL_DAY in cfg:
+                self._reading_day = float(cfg[CONF_INITIAL_DAY])
+                self._stored["reading_day"] = self._reading_day
+            if CONF_INITIAL_NIGHT in cfg:
+                self._reading_night = float(cfg[CONF_INITIAL_NIGHT])
+                self._stored["reading_night"] = self._reading_night
+            if CONF_INITIAL_TOTAL in cfg:
+                self._reading_total = float(cfg[CONF_INITIAL_TOTAL])
+                self._stored["reading_total"] = self._reading_total
+            # Reset energy tracking — counter starts from 0 after entering new readings
+            self._last_energy = None
+            self._stored["last_energy"] = None
+            # If no snapshot exists, initialize to entered readings (delta = 0)
+            if not self._stored.get("snapshot_time"):
+                self._stored["snapshot_day"] = self._reading_day
+                self._stored["snapshot_night"] = self._reading_night
+                self._stored["snapshot_total"] = self._reading_total
+            # Persist
+            self.hass.async_create_task(self._store.async_save(dict(self._stored)))
         self.async_write_ha_state()
 
     async def async_will_remove_from_hass(self) -> None:
