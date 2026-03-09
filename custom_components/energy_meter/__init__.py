@@ -36,7 +36,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Register frontend card (once)
     if "frontend_registered" not in hass.data[DOMAIN]:
         hass.data[DOMAIN]["frontend_registered"] = True
-        hass.http.register_static_path(CARD_URL, CARD_FILE, cache_headers=False)
+        try:
+            # HA 2024.7+
+            from homeassistant.components.http import StaticPathConfig
+            await hass.http.async_register_static_paths(
+                [StaticPathConfig(CARD_URL, CARD_FILE, cache_headers=False)]
+            )
+        except (ImportError, AttributeError):
+            # Older HA versions
+            hass.http.register_static_path(CARD_URL, CARD_FILE, cache_headers=False)
         add_extra_js_url(hass, CARD_URL)
 
     store = Store(hass, STORAGE_VERSION, f"{STORAGE_KEY}_{entry.entry_id}")
@@ -54,6 +62,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     async def handle_reset(call: ServiceCall) -> None:
         """Reset readings — save current as snapshot and start new period."""
         for eid, data in hass.data[DOMAIN].items():
+            if not isinstance(data, dict) or "stored" not in data:
+                continue
             stored = data["stored"]
             stored["snapshot_day"] = stored.get("reading_day", 0)
             stored["snapshot_night"] = stored.get("reading_night", 0)
@@ -64,6 +74,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     async def handle_snapshot(call: ServiceCall) -> None:
         """Take a snapshot of current readings."""
         for eid, data in hass.data[DOMAIN].items():
+            if not isinstance(data, dict) or "stored" not in data:
+                continue
             stored = data["stored"]
             stored["snapshot_day"] = stored.get("reading_day", 0)
             stored["snapshot_night"] = stored.get("reading_night", 0)
