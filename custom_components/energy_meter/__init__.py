@@ -12,6 +12,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.components.frontend import add_extra_js_url
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.typing import ConfigType
 
@@ -76,6 +77,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             stored["snapshot_total"] = stored.get("reading_total", 0)
             stored["snapshot_time"] = datetime.now().isoformat()
             await data["store"].async_save(stored)
+        async_dispatcher_send(hass, f"{DOMAIN}_snapshot_taken")
 
     async def handle_snapshot(call: ServiceCall) -> None:
         """Take a snapshot of current readings."""
@@ -88,6 +90,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             stored["snapshot_total"] = stored.get("reading_total", 0)
             stored["snapshot_time"] = datetime.now().isoformat()
             await data["store"].async_save(stored)
+        async_dispatcher_send(hass, f"{DOMAIN}_snapshot_taken")
 
     if not hass.services.has_service(DOMAIN, SERVICE_RESET_READINGS):
         hass.services.async_register(DOMAIN, SERVICE_RESET_READINGS, handle_reset)

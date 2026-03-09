@@ -13,6 +13,7 @@ from homeassistant.components.sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfEnergy
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.restore_state import RestoreEntity
@@ -107,10 +108,6 @@ class EnergyMeterMainSensor(RestoreEntity, SensorEntity):
         self._reading_day: float = stored.get("reading_day", config.get(CONF_INITIAL_DAY, 0.0))
         self._reading_night: float = stored.get("reading_night", config.get(CONF_INITIAL_NIGHT, 0.0))
         self._reading_total: float = stored.get("reading_total", config.get(CONF_INITIAL_TOTAL, 0.0))
-        self._snapshot_day: float = stored.get("snapshot_day", 0.0)
-        self._snapshot_night: float = stored.get("snapshot_night", 0.0)
-        self._snapshot_total: float = stored.get("snapshot_total", 0.0)
-        self._snapshot_time: str | None = stored.get("snapshot_time")
         self._last_energy: float | None = stored.get("last_energy")
 
         self._voltages: dict[str, float | None] = {k: None for k in VOLTAGE_ATTRS[:self._phase_count]}
@@ -142,14 +139,20 @@ class EnergyMeterMainSensor(RestoreEntity, SensorEntity):
             "phase_count": self._phase_count,
         }
 
+        # Read snapshot values from stored dict (updated by services)
+        snap_day = self._stored.get("snapshot_day", 0.0)
+        snap_night = self._stored.get("snapshot_night", 0.0)
+        snap_total = self._stored.get("snapshot_total", 0.0)
+        snap_time = self._stored.get("snapshot_time")
+
         if self._config.get(CONF_TARIFF_TYPE) == TARIFF_DUAL:
             attrs["reading_day"] = round(self._reading_day, 2)
             attrs["reading_night"] = round(self._reading_night, 2)
             attrs["reading_total"] = round(self._reading_day + self._reading_night, 2)
-            attrs["delta_day"] = round(self._reading_day - self._snapshot_day, 2)
-            attrs["delta_night"] = round(self._reading_night - self._snapshot_night, 2)
+            attrs["delta_day"] = round(self._reading_day - snap_day, 2)
+            attrs["delta_night"] = round(self._reading_night - snap_night, 2)
             attrs["delta_total"] = round(
-                (self._reading_day + self._reading_night) - (self._snapshot_day + self._snapshot_night), 2
+                (self._reading_day + self._reading_night) - (snap_day + snap_night), 2
             )
             day_rate = self._config.get(CONF_DAY_RATE, 0)
             night_rate = self._config.get(CONF_NIGHT_RATE, 0)
@@ -172,7 +175,7 @@ class EnergyMeterMainSensor(RestoreEntity, SensorEntity):
             attrs["night_end"] = f"{int(self._config.get(CONF_NIGHT_END_HOUR, 7)):02d}:{int(self._config.get(CONF_NIGHT_END_MINUTE, 0)):02d}"
         else:
             attrs["reading_total"] = round(self._reading_total, 2)
-            attrs["delta_total"] = round(self._reading_total - self._snapshot_total, 2)
+            attrs["delta_total"] = round(self._reading_total - snap_total, 2)
             rate = self._config.get(CONF_SINGLE_RATE, 0)
             attrs["cost_total"] = round(attrs["delta_total"] * rate, 2)
             attrs["single_rate"] = rate
@@ -183,8 +186,8 @@ class EnergyMeterMainSensor(RestoreEntity, SensorEntity):
 
         attrs["power"] = self._power
 
-        if self._snapshot_time:
-            attrs["last_snapshot"] = self._snapshot_time
+        if snap_time:
+            attrs["last_snapshot"] = snap_time
 
         # Power available if any voltage > 50V
         power_on = any(
@@ -198,6 +201,13 @@ class EnergyMeterMainSensor(RestoreEntity, SensorEntity):
     async def async_added_to_hass(self) -> None:
         """Subscribe to source entity changes."""
         await super().async_added_to_hass()
+
+        # Listen for snapshot events to refresh state
+        self._unsub_listeners.append(
+            async_dispatcher_connect(
+                self.hass, f"{DOMAIN}_snapshot_taken", self._handle_snapshot_taken
+            )
+        )
 
         last_state = await self.async_get_last_state()
         if last_state and last_state.attributes:
@@ -249,6 +259,11 @@ class EnergyMeterMainSensor(RestoreEntity, SensorEntity):
                 self._last_energy = float(energy_state.state)
             except (ValueError, TypeError):
                 pass
+
+    @callback
+    def _handle_snapshot_taken(self) -> None:
+        """Handle snapshot taken — refresh state."""
+        self.async_write_ha_state()
 
     async def async_will_remove_from_hass(self) -> None:
         """Unsubscribe."""
