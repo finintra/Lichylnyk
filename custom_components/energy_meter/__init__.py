@@ -1,6 +1,7 @@
 """Energy Meter integration for Home Assistant."""
 from __future__ import annotations
 
+import json
 import logging
 import os
 from datetime import datetime
@@ -29,8 +30,14 @@ _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS = ["sensor"]
 
-CARD_URL = "/energy_meter/energy-meter-card.js"
+CARD_PATH = "/energy_meter/energy-meter-card.js"
 CARD_FILE = os.path.join(os.path.dirname(__file__), "www", "energy-meter-card.js")
+
+# Read version for cache-busting
+_manifest = os.path.join(os.path.dirname(__file__), "manifest.json")
+with open(_manifest, encoding="utf-8") as _f:
+    _VERSION = json.load(_f).get("version", "0")
+CARD_URL = f"{CARD_PATH}?v={_VERSION}"
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
@@ -41,10 +48,10 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     try:
         from homeassistant.components.http import StaticPathConfig
         await hass.http.async_register_static_paths(
-            [StaticPathConfig(CARD_URL, CARD_FILE, cache_headers=False)]
+            [StaticPathConfig(CARD_PATH, CARD_FILE, cache_headers=False)]
         )
     except (ImportError, AttributeError):
-        hass.http.register_static_path(CARD_URL, CARD_FILE, cache_headers=False)
+        hass.http.register_static_path(CARD_PATH, CARD_FILE, cache_headers=False)
     add_extra_js_url(hass, CARD_URL)
     _LOGGER.info("Energy Meter card registered at %s", CARD_URL)
 

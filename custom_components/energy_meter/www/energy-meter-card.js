@@ -79,6 +79,7 @@ class EnergyMeterCard extends HTMLElement {
     this._config = {};
     this._hass = null;
     this._settingsOpen = false;
+    this._inputValues = {};
   }
 
   set hass(hass) {
@@ -166,6 +167,9 @@ class EnergyMeterCard extends HTMLElement {
     if (initTotal) data.initial_total = parseFloat(initTotal.value);
 
     await this._hass.callService("energy_meter", "update_settings", data);
+
+    // Clear stored input values — next render will use fresh attribute values
+    this._inputValues = {};
 
     // Flash "Saved!" feedback
     const saveBtn = root.getElementById("saveBtn");
@@ -358,16 +362,16 @@ class EnergyMeterCard extends HTMLElement {
               ${isDual ? `
                 <div class="settings-row">
                   <label>${this._t("day_rate")} (${this._t("uah_kwh")})</label>
-                  <input type="number" id="inp_day_rate" step="0.01" min="0" value="${a.day_rate || 4.32}">
+                  <input type="number" id="inp_day_rate" step="0.01" min="0" value="${this._inputValues.day_rate ?? a.day_rate ?? 4.32}">
                 </div>
                 <div class="settings-row">
                   <label>${this._t("night_rate")} (${this._t("uah_kwh")})</label>
-                  <input type="number" id="inp_night_rate" step="0.01" min="0" value="${a.night_rate || 2.16}">
+                  <input type="number" id="inp_night_rate" step="0.01" min="0" value="${this._inputValues.night_rate ?? a.night_rate ?? 2.16}">
                 </div>
               ` : `
                 <div class="settings-row">
                   <label>${this._t("single_rate")} (${this._t("uah_kwh")})</label>
-                  <input type="number" id="inp_single_rate" step="0.01" min="0" value="${a.single_rate || 4.32}">
+                  <input type="number" id="inp_single_rate" step="0.01" min="0" value="${this._inputValues.single_rate ?? a.single_rate ?? 4.32}">
                 </div>
               `}
             </div>
@@ -377,16 +381,16 @@ class EnergyMeterCard extends HTMLElement {
               ${isDual ? `
                 <div class="settings-row">
                   <label>${this._t("initial_day")} (${this._t("kwh")})</label>
-                  <input type="number" id="inp_initial_day" step="0.01" min="0" value="${a.reading_day || 0}">
+                  <input type="number" id="inp_initial_day" step="0.01" min="0" value="${this._inputValues.initial_day ?? a.reading_day ?? 0}">
                 </div>
                 <div class="settings-row">
                   <label>${this._t("initial_night")} (${this._t("kwh")})</label>
-                  <input type="number" id="inp_initial_night" step="0.01" min="0" value="${a.reading_night || 0}">
+                  <input type="number" id="inp_initial_night" step="0.01" min="0" value="${this._inputValues.initial_night ?? a.reading_night ?? 0}">
                 </div>
               ` : `
                 <div class="settings-row">
                   <label>${this._t("initial_total")} (${this._t("kwh")})</label>
-                  <input type="number" id="inp_initial_total" step="0.01" min="0" value="${a.reading_total || 0}">
+                  <input type="number" id="inp_initial_total" step="0.01" min="0" value="${this._inputValues.initial_total ?? a.reading_total ?? 0}">
                 </div>
               `}
             </div>
@@ -407,13 +411,24 @@ class EnergyMeterCard extends HTMLElement {
       toggle.addEventListener("click", () => {
         this._settingsOpen = !this._settingsOpen;
         if (!this._settingsOpen) {
-          // Re-render with fresh values when closing settings
+          // Clear user edits and re-render with fresh values
+          this._inputValues = {};
           this._render();
         } else {
           const panel = this.shadowRoot.getElementById("settingsPanel");
           if (panel) panel.style.display = "block";
         }
       });
+    }
+
+    // Track user edits in input fields
+    const inputMap = {
+      inp_day_rate: "day_rate", inp_night_rate: "night_rate", inp_single_rate: "single_rate",
+      inp_initial_day: "initial_day", inp_initial_night: "initial_night", inp_initial_total: "initial_total",
+    };
+    for (const [elemId, key] of Object.entries(inputMap)) {
+      const el = this.shadowRoot.getElementById(elemId);
+      if (el) el.addEventListener("input", (e) => { this._inputValues[key] = e.target.value; });
     }
 
     const saveBtn = this.shadowRoot.getElementById("saveBtn");
