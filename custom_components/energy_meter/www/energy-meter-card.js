@@ -10,7 +10,7 @@ const TRANSLATIONS = {
     day: "Day",
     night: "Night",
     total: "Total",
-    today: "Today",
+    today: "Last 24h",
     since_report: "Since Report",
     cost: "Cost",
     current_tariff: "Current Tariff",
@@ -48,7 +48,7 @@ const TRANSLATIONS = {
     day: "\u0414\u0435\u043d\u044c",
     night: "\u041d\u0456\u0447",
     total: "\u0412\u0441\u044c\u043e\u0433\u043e",
-    today: "\u0417\u0430 \u0441\u044c\u043e\u0433\u043e\u0434\u043d\u0456",
+    today: "За останню добу",
     since_report: "\u0417 \u043e\u0441\u0442\u0430\u043d\u043d\u044c\u043e\u0433\u043e \u0437\u0432\u0456\u0442\u0443",
     cost: "\u0412\u0430\u0440\u0442\u0456\u0441\u0442\u044c",
     current_tariff: "\u041f\u043e\u0442\u043e\u0447\u043d\u0438\u0439 \u0442\u0430\u0440\u0438\u0444",
@@ -334,36 +334,29 @@ class EnergyMeterCard extends HTMLElement {
             ${isDual ? `
               <div class="delta-row">
                 <ha-icon icon="mdi:white-balance-sunny" style="--mdc-icon-size:14px;color:#ffa726;"></ha-icon>
-                <span class="delta-label">${this._t("day")}:</span>
-                <span class="delta-kwh">${this._fmt(a.delta_day)}</span>
-                <span class="delta-mult">\u00d7 ${this._fmt(a.day_rate)}</span>
-                <span class="delta-eq">=</span>
-                <span class="delta-cost">${this._fmt(a.cost_day)} ${this._t("uah")}</span>
+                <span class="delta-label">${this._t("day")}</span>
+                <span class="delta-kwh">${this._fmt(a.delta_day)} ${this._t("kwh")}</span>
+                <span class="delta-mult">× ${this._fmt(a.cost_day, 2)} ${this._t("uah")}</span>
               </div>
               <div class="delta-row">
                 <ha-icon icon="mdi:weather-night" style="--mdc-icon-size:14px;color:#42a5f5;"></ha-icon>
-                <span class="delta-label">${this._t("night")}:</span>
-                <span class="delta-kwh">${this._fmt(a.delta_night)}</span>
-                <span class="delta-mult">\u00d7 ${this._fmt(a.night_rate)}</span>
-                <span class="delta-eq">=</span>
-                <span class="delta-cost">${this._fmt(a.cost_night)} ${this._t("uah")}</span>
+                <span class="delta-label">${this._t("night")}</span>
+                <span class="delta-kwh">${this._fmt(a.delta_night)} ${this._t("kwh")}</span>
+                <span class="delta-mult">× ${this._fmt(a.cost_night, 2)} ${this._t("uah")}</span>
               </div>
               <div class="delta-row delta-total-row">
                 <span class="delta-total-icon"></span>
-                <span class="delta-label">${this._t("total")}:</span>
-                <span class="delta-kwh">${this._fmt(a.delta_total)}</span>
-                <span class="delta-mult">${this._t("kwh")}</span>
-                <span class="delta-eq"></span>
-                <span class="delta-cost delta-cost-total">${this._fmt(a.cost_total)} ${this._t("uah")}</span>
+                <span class="delta-label">${this._t("total")}</span>
+                <span class="delta-kwh">${this._fmt(a.delta_total)} ${this._t("kwh")}</span>
+                <span class="delta-mult"></span>
+                <span class="delta-cost delta-cost-total">${this._fmt(a.cost_total, 2)} ${this._t("uah")}</span>
               </div>
             ` : `
               <div class="delta-row delta-total-row">
                 <span class="delta-total-icon"></span>
-                <span class="delta-label">${this._t("total")}:</span>
-                <span class="delta-kwh">${this._fmt(a.delta_total)}</span>
-                <span class="delta-mult">\u00d7 ${this._fmt(a.single_rate)}</span>
-                <span class="delta-eq">=</span>
-                <span class="delta-cost delta-cost-total">${this._fmt(a.cost_total)} ${this._t("uah")}</span>
+                <span class="delta-label">${this._t("total")}</span>
+                <span class="delta-kwh">${this._fmt(a.delta_total)} ${this._t("kwh")}</span>
+                <span class="delta-mult">× ${this._fmt(a.cost_total, 2)} ${this._t("uah")}</span>
               </div>
             `}
           </div>
