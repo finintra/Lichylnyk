@@ -41,6 +41,10 @@ const TRANSLATIONS = {
     last_report_day: "Last report day",
     last_report_night: "Last report night",
     last_report_total: "Last report total",
+    next_outage: "Next planned outage",
+    outage_from: "from",
+    outage_to: "to",
+    no_outages: "No planned outages",
   },
   uk: {
     title: "\u041b\u0456\u0447\u0438\u043b\u044c\u043d\u0438\u043a",
@@ -79,6 +83,10 @@ const TRANSLATIONS = {
     last_report_day: "\u0417\u0432\u0456\u0442 \u0434\u0435\u043d\u044c",
     last_report_night: "\u0417\u0432\u0456\u0442 \u043d\u0456\u0447",
     last_report_total: "\u0417\u0432\u0456\u0442 \u0437\u0430\u0433\u0430\u043b\u044c\u043d\u0438\u0439",
+    next_outage: "Найближче відключення",
+    outage_from: "з",
+    outage_to: "по",
+    no_outages: "Немає запланованих відключень",
   },
 };
 
@@ -145,6 +153,20 @@ class EnergyMeterCard extends HTMLElement {
         hour: "2-digit",
         minute: "2-digit",
       });
+    } catch {
+      return iso;
+    }
+  }
+
+  _fmtOutage(iso) {
+    if (!iso) return "";
+    try {
+      const d = new Date(iso);
+      const hh = String(d.getHours()).padStart(2, "0");
+      const mm = String(d.getMinutes()).padStart(2, "0");
+      const dd = String(d.getDate()).padStart(2, "0");
+      const mo = String(d.getMonth() + 1).padStart(2, "0");
+      return `${hh}:${mm}, ${dd}.${mo}`;
     } catch {
       return iso;
     }
@@ -266,6 +288,19 @@ class EnergyMeterCard extends HTMLElement {
               </div>
             `).join("")}
           </div>
+
+          <!-- Outage info -->
+          ${a.next_outage_start ? `
+            <div class="outage-banner">
+              <div class="outage-title">
+                <ha-icon icon="mdi:flash-off" style="--mdc-icon-size:16px;color:#ff5252;"></ha-icon>
+                <span>${this._t("next_outage")}</span>
+              </div>
+              <div class="outage-time">
+                ${this._t("outage_from")} ${this._fmtOutage(a.next_outage_start)} ${this._t("outage_to")} ${this._fmtOutage(a.next_outage_end)}
+              </div>
+            </div>
+          ` : ""}
 
           <!-- Meter readings + Today (combined grid) -->
           <div class="section">
@@ -624,6 +659,33 @@ class EnergyMeterCard extends HTMLElement {
         color: #78909c;
         text-transform: uppercase;
         letter-spacing: 1px;
+      }
+
+      /* Outage banner */
+      .outage-banner {
+        background: rgba(255, 82, 82, 0.1);
+        border: 1px solid rgba(255, 82, 82, 0.3);
+        border-radius: 8px;
+        padding: 10px 12px;
+        margin-bottom: 10px;
+      }
+      .outage-title {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.78em;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #ff5252;
+        margin-bottom: 4px;
+      }
+      .outage-time {
+        font-family: 'Courier New', 'Consolas', monospace;
+        font-size: 0.9em;
+        font-weight: bold;
+        color: #ff8a80;
+        padding-left: 22px;
       }
 
       /* Readings grid (meter + today side by side) */

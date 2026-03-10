@@ -32,6 +32,8 @@ from .const import (
     CONF_VOLTAGE_B_ENTITY,
     CONF_VOLTAGE_C_ENTITY,
     CONF_POWER_ENTITY,
+    CONF_YASNO_CITY,
+    CONF_YASNO_GROUP,
     TARIFF_SINGLE,
     TARIFF_DUAL,
     PHASE_1,
@@ -193,14 +195,7 @@ class EnergyMeterConfigFlow(ConfigFlow, domain=DOMAIN):
         """Step 4: Current meter readings + last submitted report."""
         if user_input is not None:
             self._data.update(user_input)
-            phase_count = self._data.get(CONF_PHASE_COUNT, PHASE_3)
-            tariff = self._data.get(CONF_TARIFF_TYPE, TARIFF_SINGLE)
-            title = f"Лічильник ({phase_count}P"
-            if tariff == TARIFF_DUAL:
-                title += ", Day/Night)"
-            else:
-                title += ")"
-            return self.async_create_entry(title=title, data=self._data)
+            return await self.async_step_outages()
 
         if self._data.get(CONF_TARIFF_TYPE) == TARIFF_DUAL:
             schema = vol.Schema(
@@ -252,6 +247,43 @@ class EnergyMeterConfigFlow(ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="initial_readings",
             data_schema=schema,
+        )
+
+    async def async_step_outages(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Step 5: Yasno planned outages (optional)."""
+        if user_input is not None:
+            self._data.update(user_input)
+            phase_count = self._data.get(CONF_PHASE_COUNT, PHASE_3)
+            tariff = self._data.get(CONF_TARIFF_TYPE, TARIFF_SINGLE)
+            title = f"Лічильник ({phase_count}P"
+            if tariff == TARIFF_DUAL:
+                title += ", Day/Night)"
+            else:
+                title += ")"
+            return self.async_create_entry(title=title, data=self._data)
+
+        return self.async_show_form(
+            step_id="outages",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(CONF_YASNO_CITY, default="none"): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=[
+                                selector.SelectOptionDict(value="none", label="none"),
+                                selector.SelectOptionDict(value="25:902", label="kyiv"),
+                                selector.SelectOptionDict(value="3:301", label="dnipro_dnem"),
+                                selector.SelectOptionDict(value="3:303", label="dnipro_cek"),
+                            ],
+                            translation_key="yasno_city",
+                        )
+                    ),
+                    vol.Optional(CONF_YASNO_GROUP, default=""): selector.TextSelector(
+                        selector.TextSelectorConfig(type="text")
+                    ),
+                }
+            ),
         )
 
     @staticmethod
