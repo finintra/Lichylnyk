@@ -336,19 +336,24 @@ class EnergyMeterCard extends HTMLElement {
                 <ha-icon icon="mdi:white-balance-sunny" style="--mdc-icon-size:14px;color:#ffa726;"></ha-icon>
                 <span class="delta-label">${this._t("day")}</span>
                 <span class="delta-kwh">${this._fmt(a.delta_day)} ${this._t("kwh")}</span>
-                <span class="delta-mult">× ${this._fmt(a.cost_day, 2)} ${this._t("uah")}</span>
+                <span class="delta-mult">× ${this._fmt(a.day_rate, 2)}</span>
+                <span class="delta-eq">=</span>
+                <span class="delta-cost">${this._fmt(a.cost_day, 2)} ${this._t("uah")}</span>
               </div>
               <div class="delta-row">
                 <ha-icon icon="mdi:weather-night" style="--mdc-icon-size:14px;color:#42a5f5;"></ha-icon>
                 <span class="delta-label">${this._t("night")}</span>
                 <span class="delta-kwh">${this._fmt(a.delta_night)} ${this._t("kwh")}</span>
-                <span class="delta-mult">× ${this._fmt(a.cost_night, 2)} ${this._t("uah")}</span>
+                <span class="delta-mult">× ${this._fmt(a.night_rate, 2)}</span>
+                <span class="delta-eq">=</span>
+                <span class="delta-cost">${this._fmt(a.cost_night, 2)} ${this._t("uah")}</span>
               </div>
               <div class="delta-row delta-total-row">
                 <span class="delta-total-icon"></span>
                 <span class="delta-label">${this._t("total")}</span>
                 <span class="delta-kwh">${this._fmt(a.delta_total)} ${this._t("kwh")}</span>
                 <span class="delta-mult"></span>
+                <span class="delta-eq"></span>
                 <span class="delta-cost delta-cost-total">${this._fmt(a.cost_total, 2)} ${this._t("uah")}</span>
               </div>
             ` : `
@@ -356,7 +361,9 @@ class EnergyMeterCard extends HTMLElement {
                 <span class="delta-total-icon"></span>
                 <span class="delta-label">${this._t("total")}</span>
                 <span class="delta-kwh">${this._fmt(a.delta_total)} ${this._t("kwh")}</span>
-                <span class="delta-mult">× ${this._fmt(a.cost_total, 2)} ${this._t("uah")}</span>
+                <span class="delta-mult">× ${this._fmt(a.single_rate, 2)}</span>
+                <span class="delta-eq">=</span>
+                <span class="delta-cost delta-cost-total">${this._fmt(a.cost_total, 2)} ${this._t("uah")}</span>
               </div>
             `}
           </div>
