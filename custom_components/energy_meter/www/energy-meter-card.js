@@ -37,6 +37,10 @@ const TRANSLATIONS = {
     uah_kwh: "UAH/kWh",
     rates: "Tariff rates",
     readings: "Current readings",
+    last_report_readings: "Last report readings",
+    last_report_day: "Last report day",
+    last_report_night: "Last report night",
+    last_report_total: "Last report total",
   },
   uk: {
     title: "\u041b\u0456\u0447\u0438\u043b\u044c\u043d\u0438\u043a",
@@ -71,6 +75,10 @@ const TRANSLATIONS = {
     uah_kwh: "\u0433\u0440\u043d/\u043a\u0412\u0442\u00b7\u0433\u043e\u0434",
     rates: "\u0422\u0430\u0440\u0438\u0444\u0438",
     readings: "\u041f\u043e\u0442\u043e\u0447\u043d\u0456 \u043f\u043e\u043a\u0430\u0437\u043d\u0438\u043a\u0438",
+    last_report_readings: "\u041f\u043e\u043a\u0430\u0437\u043d\u0438\u043a\u0438 \u043e\u0441\u0442\u0430\u043d\u043d\u044c\u043e\u0433\u043e \u0437\u0432\u0456\u0442\u0443",
+    last_report_day: "\u0417\u0432\u0456\u0442 \u0434\u0435\u043d\u044c",
+    last_report_night: "\u0417\u0432\u0456\u0442 \u043d\u0456\u0447",
+    last_report_total: "\u0417\u0432\u0456\u0442 \u0437\u0430\u0433\u0430\u043b\u044c\u043d\u0438\u0439",
   },
 };
 
@@ -121,7 +129,7 @@ class EnergyMeterCard extends HTMLElement {
     );
   }
 
-  _fmt(val, decimals = 2) {
+  _fmt(val, decimals = 3) {
     if (val === null || val === undefined || isNaN(val)) return this._t("no_data");
     return Number(val).toFixed(decimals);
   }
@@ -160,6 +168,9 @@ class EnergyMeterCard extends HTMLElement {
     const initDay = root.getElementById("inp_initial_day");
     const initNight = root.getElementById("inp_initial_night");
     const initTotal = root.getElementById("inp_initial_total");
+    const repDay = root.getElementById("inp_last_report_day");
+    const repNight = root.getElementById("inp_last_report_night");
+    const repTotal = root.getElementById("inp_last_report_total");
 
     if (dayRate) data.day_rate = parseFloat(dayRate.value);
     if (nightRate) data.night_rate = parseFloat(nightRate.value);
@@ -167,6 +178,9 @@ class EnergyMeterCard extends HTMLElement {
     if (initDay) data.initial_day = parseFloat(initDay.value);
     if (initNight) data.initial_night = parseFloat(initNight.value);
     if (initTotal) data.initial_total = parseFloat(initTotal.value);
+    if (repDay) data.last_report_day = parseFloat(repDay.value);
+    if (repNight) data.last_report_night = parseFloat(repNight.value);
+    if (repTotal) data.last_report_total = parseFloat(repTotal.value);
 
     await this._hass.callService("energy_meter", "update_settings", data);
 
@@ -429,6 +443,25 @@ class EnergyMeterCard extends HTMLElement {
               `}
             </div>
 
+            <div class="settings-group">
+              <div class="settings-group-title">${this._t("last_report_readings")}</div>
+              ${isDual ? `
+                <div class="settings-row">
+                  <label>${this._t("last_report_day")} (${this._t("kwh")})</label>
+                  <input type="number" id="inp_last_report_day" step="0.01" min="0" value="${this._inputValues.last_report_day ?? a.snapshot_day ?? 0}">
+                </div>
+                <div class="settings-row">
+                  <label>${this._t("last_report_night")} (${this._t("kwh")})</label>
+                  <input type="number" id="inp_last_report_night" step="0.01" min="0" value="${this._inputValues.last_report_night ?? a.snapshot_night ?? 0}">
+                </div>
+              ` : `
+                <div class="settings-row">
+                  <label>${this._t("last_report_total")} (${this._t("kwh")})</label>
+                  <input type="number" id="inp_last_report_total" step="0.01" min="0" value="${this._inputValues.last_report_total ?? a.snapshot_total ?? 0}">
+                </div>
+              `}
+            </div>
+
             <button class="save-btn" id="saveBtn">${this._t("save")}</button>
           </div>
 
@@ -459,6 +492,7 @@ class EnergyMeterCard extends HTMLElement {
     const inputMap = {
       inp_day_rate: "day_rate", inp_night_rate: "night_rate", inp_single_rate: "single_rate",
       inp_initial_day: "initial_day", inp_initial_night: "initial_night", inp_initial_total: "initial_total",
+      inp_last_report_day: "last_report_day", inp_last_report_night: "last_report_night", inp_last_report_total: "last_report_total",
     };
     for (const [elemId, key] of Object.entries(inputMap)) {
       const el = this.shadowRoot.getElementById(elemId);

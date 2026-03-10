@@ -116,6 +116,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             for key in (
                 "day_rate", "night_rate", "single_rate",
                 "initial_day", "initial_night", "initial_total",
+                "last_report_day", "last_report_night", "last_report_total",
             ):
                 if key in svc_data:
                     new_data[key] = float(svc_data[key])

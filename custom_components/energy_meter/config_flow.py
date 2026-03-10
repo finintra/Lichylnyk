@@ -24,6 +24,9 @@ from .const import (
     CONF_INITIAL_DAY,
     CONF_INITIAL_NIGHT,
     CONF_INITIAL_TOTAL,
+    CONF_LAST_REPORT_DAY,
+    CONF_LAST_REPORT_NIGHT,
+    CONF_LAST_REPORT_TOTAL,
     CONF_ENERGY_ENTITY,
     CONF_VOLTAGE_A_ENTITY,
     CONF_VOLTAGE_B_ENTITY,
@@ -187,7 +190,7 @@ class EnergyMeterConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_initial_readings(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
-        """Step 4: Initial meter readings."""
+        """Step 4: Current meter readings + last submitted report."""
         if user_input is not None:
             self._data.update(user_input)
             phase_count = self._data.get(CONF_PHASE_COUNT, PHASE_3)
@@ -214,12 +217,30 @@ class EnergyMeterConfigFlow(ConfigFlow, domain=DOMAIN):
                             unit_of_measurement="kWh",
                         )
                     ),
+                    vol.Required(CONF_LAST_REPORT_DAY, default=0.0): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=0, max=999999, step=0.01, mode="box",
+                            unit_of_measurement="kWh",
+                        )
+                    ),
+                    vol.Required(CONF_LAST_REPORT_NIGHT, default=0.0): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=0, max=999999, step=0.01, mode="box",
+                            unit_of_measurement="kWh",
+                        )
+                    ),
                 }
             )
         else:
             schema = vol.Schema(
                 {
                     vol.Required(CONF_INITIAL_TOTAL, default=0.0): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=0, max=999999, step=0.01, mode="box",
+                            unit_of_measurement="kWh",
+                        )
+                    ),
+                    vol.Required(CONF_LAST_REPORT_TOTAL, default=0.0): selector.NumberSelector(
                         selector.NumberSelectorConfig(
                             min=0, max=999999, step=0.01, mode="box",
                             unit_of_measurement="kWh",

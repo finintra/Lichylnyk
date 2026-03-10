@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 
 from homeassistant.components.sensor import (
@@ -15,7 +15,7 @@ from homeassistant.const import UnitOfEnergy
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.event import async_track_state_change_event, async_track_time_change
+from homeassistant.helpers.event import async_track_state_change_event, async_track_time_change, async_track_time_interval
 from homeassistant.helpers.restore_state import RestoreEntity
 
 from .const import (
@@ -32,6 +32,9 @@ from .const import (
     CONF_INITIAL_DAY,
     CONF_INITIAL_NIGHT,
     CONF_INITIAL_TOTAL,
+    CONF_LAST_REPORT_DAY,
+    CONF_LAST_REPORT_NIGHT,
+    CONF_LAST_REPORT_TOTAL,
     CONF_ENERGY_ENTITY,
     CONF_VOLTAGE_A_ENTITY,
     CONF_VOLTAGE_B_ENTITY,
@@ -115,11 +118,12 @@ class EnergyMeterMainSensor(RestoreEntity, SensorEntity):
         self._stored["reading_night"] = self._reading_night
         self._stored["reading_total"] = self._reading_total
 
-        # If no snapshot exists, set snapshot = initial readings (delta starts at 0)
+        # If no snapshot exists, set snapshot = last report values (from config)
         if "snapshot_time" not in self._stored:
-            self._stored["snapshot_day"] = self._reading_day
-            self._stored["snapshot_night"] = self._reading_night
-            self._stored["snapshot_total"] = self._reading_total
+            self._stored["snapshot_day"] = config.get(CONF_LAST_REPORT_DAY, self._reading_day)
+            self._stored["snapshot_night"] = config.get(CONF_LAST_REPORT_NIGHT, self._reading_night)
+            self._stored["snapshot_total"] = config.get(CONF_LAST_REPORT_TOTAL, self._reading_total)
+            self._stored["snapshot_time"] = datetime.now().isoformat()
 
         # Daily checkpoint for "last 24h" consumption
         today = datetime.now().strftime("%Y-%m-%d")
@@ -147,8 +151,8 @@ class EnergyMeterMainSensor(RestoreEntity, SensorEntity):
     def native_value(self) -> float:
         """Return total reading."""
         if self._config.get(CONF_TARIFF_TYPE) == TARIFF_DUAL:
-            return round(self._reading_day + self._reading_night, 2)
-        return round(self._reading_total, 2)
+            return round(self._reading_day + self._reading_night, 3)
+        return round(self._reading_total, 3)
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
@@ -165,13 +169,13 @@ class EnergyMeterMainSensor(RestoreEntity, SensorEntity):
         snap_time = self._stored.get("snapshot_time")
 
         if self._config.get(CONF_TARIFF_TYPE) == TARIFF_DUAL:
-            attrs["reading_day"] = round(self._reading_day, 2)
-            attrs["reading_night"] = round(self._reading_night, 2)
-            attrs["reading_total"] = round(self._reading_day + self._reading_night, 2)
-            attrs["delta_day"] = round(self._reading_day - snap_day, 2)
-            attrs["delta_night"] = round(self._reading_night - snap_night, 2)
+            attrs["reading_day"] = round(self._reading_day, 3)
+            attrs["reading_night"] = round(self._reading_night, 3)
+            attrs["reading_total"] = round(self._reading_day + self._reading_night, 3)
+            attrs["delta_day"] = round(self._reading_day - snap_day, 3)
+            attrs["delta_night"] = round(self._reading_night - snap_night, 3)
             attrs["delta_total"] = round(
-                (self._reading_day + self._reading_night) - (snap_day + snap_night), 2
+                (self._reading_day + self._reading_night) - (snap_day + snap_night), 3
             )
             day_rate = self._config.get(CONF_DAY_RATE, 0)
             night_rate = self._config.get(CONF_NIGHT_RATE, 0)
@@ -193,8 +197,8 @@ class EnergyMeterMainSensor(RestoreEntity, SensorEntity):
             attrs["night_start"] = f"{int(self._config.get(CONF_NIGHT_START_HOUR, 23)):02d}:{int(self._config.get(CONF_NIGHT_START_MINUTE, 0)):02d}"
             attrs["night_end"] = f"{int(self._config.get(CONF_NIGHT_END_HOUR, 7)):02d}:{int(self._config.get(CONF_NIGHT_END_MINUTE, 0)):02d}"
         else:
-            attrs["reading_total"] = round(self._reading_total, 2)
-            attrs["delta_total"] = round(self._reading_total - snap_total, 2)
+            attrs["reading_total"] = round(self._reading_total, 3)
+            attrs["delta_total"] = round(self._reading_total - snap_total, 3)
             rate = self._config.get(CONF_SINGLE_RATE, 0)
             attrs["cost_total"] = round(attrs["delta_total"] * rate, 2)
             attrs["single_rate"] = rate
@@ -204,13 +208,13 @@ class EnergyMeterMainSensor(RestoreEntity, SensorEntity):
         daily_night = self._stored.get("daily_night", self._reading_night)
         daily_total = self._stored.get("daily_total", self._reading_total)
         if self._config.get(CONF_TARIFF_TYPE) == TARIFF_DUAL:
-            attrs["today_day"] = round(self._reading_day - daily_day, 2)
-            attrs["today_night"] = round(self._reading_night - daily_night, 2)
+            attrs["today_day"] = round(self._reading_day - daily_day, 3)
+            attrs["today_night"] = round(self._reading_night - daily_night, 3)
             attrs["today_total"] = round(
-                (self._reading_day + self._reading_night) - (daily_day + daily_night), 2
+                (self._reading_day + self._reading_night) - (daily_day + daily_night), 3
             )
         else:
-            attrs["today_total"] = round(self._reading_total - daily_total, 2)
+            attrs["today_total"] = round(self._reading_total - daily_total, 3)
 
         # Voltage info per configured phase
         for attr_name in VOLTAGE_ATTRS[:self._phase_count]:
@@ -253,6 +257,13 @@ class EnergyMeterMainSensor(RestoreEntity, SensorEntity):
         self._unsub_listeners.append(
             async_track_time_change(
                 self.hass, self._handle_midnight, hour=0, minute=0, second=0
+            )
+        )
+
+        # DEBUG: refresh state every 20 seconds to see small changes
+        self._unsub_listeners.append(
+            async_track_time_interval(
+                self.hass, self._handle_periodic_refresh, timedelta(seconds=20)
             )
         )
 
@@ -318,6 +329,11 @@ class EnergyMeterMainSensor(RestoreEntity, SensorEntity):
         self.async_write_ha_state()
 
     @callback
+    def _handle_periodic_refresh(self, now) -> None:
+        """DEBUG: periodically refresh state to show small changes."""
+        self.async_write_ha_state()
+
+    @callback
     def _handle_snapshot_taken(self) -> None:
         """Handle snapshot taken — refresh state."""
         self.async_write_ha_state()
@@ -338,19 +354,18 @@ class EnergyMeterMainSensor(RestoreEntity, SensorEntity):
             if CONF_INITIAL_TOTAL in cfg:
                 self._reading_total = float(cfg[CONF_INITIAL_TOTAL])
                 self._stored["reading_total"] = self._reading_total
+            # Update snapshot from last report values if provided
+            if CONF_LAST_REPORT_DAY in cfg:
+                self._stored["snapshot_day"] = float(cfg[CONF_LAST_REPORT_DAY])
+            if CONF_LAST_REPORT_NIGHT in cfg:
+                self._stored["snapshot_night"] = float(cfg[CONF_LAST_REPORT_NIGHT])
+            if CONF_LAST_REPORT_TOTAL in cfg:
+                self._stored["snapshot_total"] = float(cfg[CONF_LAST_REPORT_TOTAL])
+            if not self._stored.get("snapshot_time"):
+                self._stored["snapshot_time"] = datetime.now().isoformat()
             # Reset energy tracking — counter starts from 0 after entering new readings
             self._last_energy = None
             self._stored["last_energy"] = None
-            # Reset snapshot to new readings so "since report" starts from 0
-            self._stored["snapshot_day"] = self._reading_day
-            self._stored["snapshot_night"] = self._reading_night
-            self._stored["snapshot_total"] = self._reading_total
-            self._stored["snapshot_time"] = datetime.now().isoformat()
-            # Reset daily checkpoint too
-            self._stored["daily_day"] = self._reading_day
-            self._stored["daily_night"] = self._reading_night
-            self._stored["daily_total"] = self._reading_total
-            self._stored["daily_date"] = datetime.now().strftime("%Y-%m-%d")
             # Persist
             self.hass.async_create_task(self._store.async_save(dict(self._stored)))
         self.async_write_ha_state()

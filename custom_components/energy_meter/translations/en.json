@@ -51,12 +51,23 @@
         }
       },
       "initial_readings": {
-        "title": "Current Meter Readings",
-        "description": "Enter the current readings from your physical meter",
+        "title": "Meter Readings",
+        "description": "Enter the current readings from your physical meter and the readings from your last submitted report",
         "data": {
-          "initial_day": "Day reading (kWh)",
-          "initial_night": "Night reading (kWh)",
-          "initial_total": "Total reading (kWh)"
+          "initial_day": "Current day reading (kWh)",
+          "initial_night": "Current night reading (kWh)",
+          "initial_total": "Current total reading (kWh)",
+          "last_report_day": "Last report day (kWh)",
+          "last_report_night": "Last report night (kWh)",
+          "last_report_total": "Last report total (kWh)"
+        },
+        "data_description": {
+          "initial_day": "What your physical meter shows now for day tariff",
+          "initial_night": "What your physical meter shows now for night tariff",
+          "initial_total": "What your physical meter shows now (total)",
+          "last_report_day": "Day reading from your last submitted electricity bill",
+          "last_report_night": "Night reading from your last submitted electricity bill",
+          "last_report_total": "Total reading from your last submitted electricity bill"
         }
       }
     }

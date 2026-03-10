@@ -15,6 +15,9 @@ CONF_NIGHT_END_MINUTE = "night_end_minute"
 CONF_INITIAL_DAY = "initial_day"
 CONF_INITIAL_NIGHT = "initial_night"
 CONF_INITIAL_TOTAL = "initial_total"
+CONF_LAST_REPORT_DAY = "last_report_day"
+CONF_LAST_REPORT_NIGHT = "last_report_night"
+CONF_LAST_REPORT_TOTAL = "last_report_total"
 
 # Source entities from Zigbee2MQTT
 CONF_ENERGY_ENTITY = "energy_entity"
