@@ -5,8 +5,6 @@ import logging
 from datetime import datetime, timedelta
 from typing import Any
 
-import aiohttp
-
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
@@ -18,7 +16,6 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_state_change_event, async_track_time_change, async_track_time_interval
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.restore_state import RestoreEntity
 
 from .const import (
@@ -43,9 +40,7 @@ from .const import (
     CONF_VOLTAGE_B_ENTITY,
     CONF_VOLTAGE_C_ENTITY,
     CONF_POWER_ENTITY,
-    CONF_YASNO_CITY,
-    CONF_YASNO_GROUP,
-    YASNO_API_URL,
+    CONF_YASNO_ENTITY,
     TARIFF_SINGLE,
     TARIFF_DUAL,
     PHASE_1,
@@ -143,7 +138,10 @@ class EnergyMeterMainSensor(RestoreEntity, SensorEntity):
         self._power: float | None = None
         self._unsub_listeners: list = []
 
-        # Yasno outage data
+        # Yasno outage data (from ha-yasno-outages integration)
+        self._outage_state: str | None = None  # "normal" / "outage"
+        self._outage_event_start: str | None = None
+        self._outage_event_end: str | None = None
         self._next_outage_start: str | None = None
         self._next_outage_end: str | None = None
 
@@ -245,7 +243,11 @@ class EnergyMeterMainSensor(RestoreEntity, SensorEntity):
         )
         attrs["power_available"] = power_on
 
-        # Yasno outage info
+        # Yasno outage info (from ha-yasno-outages)
+        if self._outage_state:
+            attrs["outage_state"] = self._outage_state
+        if self._outage_state == "outage":
+            attrs["outage_event_end"] = self._outage_event_end
         if self._next_outage_start:
             attrs["next_outage_start"] = self._next_outage_start
             attrs["next_outage_end"] = self._next_outage_end
@@ -282,16 +284,28 @@ class EnergyMeterMainSensor(RestoreEntity, SensorEntity):
             )
         )
 
-        # Yasno outages: fetch every 15 minutes if configured
-        city = self._config.get(CONF_YASNO_CITY, "none")
-        group = self._config.get(CONF_YASNO_GROUP, "")
-        if city and city != "none" and group:
-            self.hass.async_create_task(self._fetch_outages())
+        # Yasno outages: track the user-configured Yasno electricity entity
+        yasno_entity = self._config.get(CONF_YASNO_ENTITY, "")
+        if yasno_entity:
             self._unsub_listeners.append(
-                async_track_time_interval(
-                    self.hass, self._handle_outage_refresh, timedelta(minutes=15)
+                async_track_state_change_event(
+                    self.hass, [yasno_entity], self._async_yasno_changed
                 )
             )
+            # Derive companion entity IDs for next_planned_outage and next_connectivity
+            base = yasno_entity.rsplit("_electricity", 1)[0] if "_electricity" in yasno_entity else ""
+            self._yasno_next_outage_id = f"{base}_next_planned_outage" if base else ""
+            self._yasno_connectivity_id = f"{base}_next_connectivity" if base else ""
+            if self._yasno_next_outage_id:
+                self._unsub_listeners.append(
+                    async_track_state_change_event(
+                        self.hass,
+                        [self._yasno_next_outage_id, self._yasno_connectivity_id],
+                        self._async_yasno_changed,
+                    )
+                )
+            # Read initial values
+            self._update_yasno_state()
 
         last_state = await self.async_get_last_state()
         if last_state and last_state.attributes:
@@ -397,82 +411,44 @@ class EnergyMeterMainSensor(RestoreEntity, SensorEntity):
         self.async_write_ha_state()
 
     @callback
-    def _handle_outage_refresh(self, now) -> None:
-        """Periodically refresh outage data."""
-        self.hass.async_create_task(self._fetch_outages())
-
-    async def _fetch_outages(self) -> None:
-        """Fetch planned outages from Yasno API."""
-        city_val = self._config.get(CONF_YASNO_CITY, "none")
-        group = self._config.get(CONF_YASNO_GROUP, "")
-        if not city_val or city_val == "none" or not group:
-            return
-
-        try:
-            region_id, dso_id = city_val.split(":")
-        except ValueError:
-            return
-
-        url = YASNO_API_URL.format(region_id=region_id, dso_id=dso_id)
-
-        try:
-            session = async_get_clientsession(self.hass)
-            async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as resp:
-                if resp.status != 200:
-                    _LOGGER.warning("Yasno API returned %s", resp.status)
-                    return
-                data = await resp.json()
-        except Exception as err:
-            _LOGGER.debug("Failed to fetch Yasno outages: %s", err)
-            return
-
-        group_data = data.get(group)
-        if not group_data:
-            _LOGGER.debug("No data for group %s", group)
-            self._next_outage_start = None
-            self._next_outage_end = None
-            self.async_write_ha_state()
-            return
-
-        now = datetime.now()
-
-        for day_key in ("today", "tomorrow"):
-            day = group_data.get(day_key, {})
-            slots = day.get("slots", [])
-            date_str = day.get("date")
-            if not date_str or not slots:
-                continue
-
-            try:
-                base_date = datetime.fromisoformat(date_str).replace(
-                    hour=0, minute=0, second=0, microsecond=0
-                )
-            except (ValueError, TypeError):
-                continue
-
-            # Merge consecutive Definite slots
-            merged: list[tuple[datetime, datetime]] = []
-            for slot in slots:
-                if slot.get("type") != "Definite":
-                    continue
-                s = base_date + timedelta(minutes=slot["start"])
-                e = base_date + timedelta(minutes=slot["end"])
-                if merged and merged[-1][1] == s:
-                    merged[-1] = (merged[-1][0], e)
-                else:
-                    merged.append((s, e))
-
-            for start_dt, end_dt in merged:
-                if end_dt > now:
-                    self._next_outage_start = start_dt.isoformat()
-                    self._next_outage_end = end_dt.isoformat()
-                    self.async_write_ha_state()
-                    return
-
-        # No upcoming outages found
-        self._next_outage_start = None
-        self._next_outage_end = None
+    def _async_yasno_changed(self, event) -> None:
+        """Handle Yasno entity state changes."""
+        self._update_yasno_state()
         self.async_write_ha_state()
+
+    def _update_yasno_state(self) -> None:
+        """Read current state from Yasno entities."""
+        yasno_entity = self._config.get(CONF_YASNO_ENTITY, "")
+        if not yasno_entity:
+            return
+
+        # Read the electricity sensor
+        state_obj = self.hass.states.get(yasno_entity)
+        if state_obj and state_obj.state not in ("unknown", "unavailable"):
+            self._outage_state = state_obj.state  # "normal" or "outage"
+            a = state_obj.attributes
+            self._outage_event_start = a.get("event_start")
+            self._outage_event_end = a.get("event_end")
+        else:
+            self._outage_state = None
+
+        # Read next_planned_outage companion sensor
+        next_id = getattr(self, "_yasno_next_outage_id", "")
+        if next_id:
+            next_obj = self.hass.states.get(next_id)
+            if next_obj and next_obj.state not in ("unknown", "unavailable", "None", ""):
+                self._next_outage_start = next_obj.state
+            else:
+                self._next_outage_start = None
+
+        # Read next_connectivity companion sensor (= outage end time)
+        conn_id = getattr(self, "_yasno_connectivity_id", "")
+        if conn_id:
+            conn_obj = self.hass.states.get(conn_id)
+            if conn_obj and conn_obj.state not in ("unknown", "unavailable", "None", ""):
+                self._next_outage_end = conn_obj.state
+            else:
+                self._next_outage_end = None
 
     async def async_will_remove_from_hass(self) -> None:
         """Unsubscribe."""

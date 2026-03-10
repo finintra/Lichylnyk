@@ -41,10 +41,8 @@ PHASE_1 = "1"
 PHASE_2 = "2"
 PHASE_3 = "3"
 
-# Yasno outages
-CONF_YASNO_CITY = "yasno_city"
-CONF_YASNO_GROUP = "yasno_group"
-YASNO_API_URL = "https://app.yasno.ua/api/blackout-service/public/shutdowns/regions/{region_id}/dsos/{dso_id}/planned-outages"
+# Yasno outages (ha-yasno-outages integration)
+CONF_YASNO_ENTITY = "yasno_entity"
 
 # Storage
 STORAGE_KEY = "energy_meter_data"

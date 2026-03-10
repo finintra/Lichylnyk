@@ -32,8 +32,7 @@ from .const import (
     CONF_VOLTAGE_B_ENTITY,
     CONF_VOLTAGE_C_ENTITY,
     CONF_POWER_ENTITY,
-    CONF_YASNO_CITY,
-    CONF_YASNO_GROUP,
+    CONF_YASNO_ENTITY,
     TARIFF_SINGLE,
     TARIFF_DUAL,
     PHASE_1,
@@ -268,20 +267,7 @@ class EnergyMeterConfigFlow(ConfigFlow, domain=DOMAIN):
             step_id="outages",
             data_schema=vol.Schema(
                 {
-                    vol.Optional(CONF_YASNO_CITY, default="none"): selector.SelectSelector(
-                        selector.SelectSelectorConfig(
-                            options=[
-                                selector.SelectOptionDict(value="none", label="none"),
-                                selector.SelectOptionDict(value="25:902", label="kyiv"),
-                                selector.SelectOptionDict(value="3:301", label="dnipro_dnem"),
-                                selector.SelectOptionDict(value="3:303", label="dnipro_cek"),
-                            ],
-                            translation_key="yasno_city",
-                        )
-                    ),
-                    vol.Optional(CONF_YASNO_GROUP, default=""): selector.TextSelector(
-                        selector.TextSelectorConfig(type="text")
-                    ),
+                    vol.Optional(CONF_YASNO_ENTITY, default=""): SENSOR_SELECTOR,
                 }
             ),
         )

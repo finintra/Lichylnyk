@@ -72,14 +72,12 @@
       },
       "outages": {
         "title": "Planned Outages",
-        "description": "Configure Yasno planned outage schedule display (optional)",
+        "description": "If you have the Yasno Outages integration (ha-yasno-outages) installed, select its electricity sensor to show outage info on the card",
         "data": {
-          "yasno_city": "City",
-          "yasno_group": "Outage group"
+          "yasno_entity": "Yasno electricity sensor"
         },
         "data_description": {
-          "yasno_city": "Select your city for outage schedule",
-          "yasno_group": "Your outage group (e.g. 1.1). Find it on yasno.com.ua or in the Yasno app"
+          "yasno_entity": "Select the 'electricity' sensor from Yasno Outages integration. Leave empty to skip."
         }
       }
     }
@@ -108,14 +106,6 @@
         "1": "1 Phase",
         "2": "2 Phases",
         "3": "3 Phases"
-      }
-    },
-    "yasno_city": {
-      "options": {
-        "none": "Don't show",
-        "25:902": "Kyiv",
-        "3:301": "Dnipro (DNEM)",
-        "3:303": "Dnipro (CEK)"
       }
     }
   }

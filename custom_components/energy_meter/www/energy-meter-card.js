@@ -42,6 +42,7 @@ const TRANSLATIONS = {
     last_report_night: "Last report night",
     last_report_total: "Last report total",
     next_outage: "Next planned outage",
+    outage_now: "Outage in progress",
     outage_from: "from",
     outage_to: "to",
     no_outages: "No planned outages",
@@ -84,8 +85,9 @@ const TRANSLATIONS = {
     last_report_night: "\u0417\u0432\u0456\u0442 \u043d\u0456\u0447",
     last_report_total: "\u0417\u0432\u0456\u0442 \u0437\u0430\u0433\u0430\u043b\u044c\u043d\u0438\u0439",
     next_outage: "Найближче відключення",
+    outage_now: "Відключення зараз",
     outage_from: "з",
-    outage_to: "по",
+    outage_to: "до",
     no_outages: "Немає запланованих відключень",
   },
 };
@@ -289,11 +291,21 @@ class EnergyMeterCard extends HTMLElement {
             `).join("")}
           </div>
 
-          <!-- Outage info -->
-          ${a.next_outage_start ? `
-            <div class="outage-banner">
+          <!-- Outage info (from ha-yasno-outages) -->
+          ${a.outage_state === "outage" ? `
+            <div class="outage-banner outage-active">
               <div class="outage-title">
                 <ha-icon icon="mdi:flash-off" style="--mdc-icon-size:16px;color:#ff5252;"></ha-icon>
+                <span>${this._t("outage_now")}</span>
+              </div>
+              <div class="outage-time">
+                ${this._t("outage_to")} ${this._fmtOutage(a.outage_event_end)}
+              </div>
+            </div>
+          ` : a.next_outage_start ? `
+            <div class="outage-banner">
+              <div class="outage-title">
+                <ha-icon icon="mdi:flash-alert" style="--mdc-icon-size:16px;color:#ffa726;"></ha-icon>
                 <span>${this._t("next_outage")}</span>
               </div>
               <div class="outage-time">
@@ -663,11 +675,15 @@ class EnergyMeterCard extends HTMLElement {
 
       /* Outage banner */
       .outage-banner {
-        background: rgba(255, 82, 82, 0.1);
-        border: 1px solid rgba(255, 82, 82, 0.3);
+        background: rgba(255, 167, 38, 0.1);
+        border: 1px solid rgba(255, 167, 38, 0.3);
         border-radius: 8px;
         padding: 10px 12px;
         margin-bottom: 10px;
+      }
+      .outage-banner.outage-active {
+        background: rgba(255, 82, 82, 0.15);
+        border-color: rgba(255, 82, 82, 0.4);
       }
       .outage-title {
         display: flex;
@@ -677,15 +693,21 @@ class EnergyMeterCard extends HTMLElement {
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 1px;
-        color: #ff5252;
+        color: #ffa726;
         margin-bottom: 4px;
+      }
+      .outage-active .outage-title {
+        color: #ff5252;
       }
       .outage-time {
         font-family: 'Courier New', 'Consolas', monospace;
         font-size: 0.9em;
         font-weight: bold;
-        color: #ff8a80;
+        color: #ffcc80;
         padding-left: 22px;
+      }
+      .outage-active .outage-time {
+        color: #ff8a80;
       }
 
       /* Readings grid (meter + today side by side) */
