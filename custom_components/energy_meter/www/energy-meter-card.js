@@ -267,66 +267,63 @@ class EnergyMeterCard extends HTMLElement {
             `).join("")}
           </div>
 
-          <!-- Meter readings -->
+          <!-- Meter readings + Today (combined grid) -->
           <div class="section">
-            <div class="section-title">${this._t("meter_reading")}</div>
             ${isDual ? `
-              <div class="reading-row">
-                <span class="reading-icon"><ha-icon icon="mdi:white-balance-sunny" style="--mdc-icon-size:16px;color:#ffa726;"></ha-icon></span>
-                <span class="reading-label">${this._t("day")}:</span>
-                <span class="lcd-value">${this._fmt(a.reading_day)}</span>
-                <span class="reading-unit">${this._t("kwh")}</span>
-              </div>
-              <div class="reading-row">
-                <span class="reading-icon"><ha-icon icon="mdi:weather-night" style="--mdc-icon-size:16px;color:#42a5f5;"></ha-icon></span>
-                <span class="reading-label">${this._t("night")}:</span>
-                <span class="lcd-value">${this._fmt(a.reading_night)}</span>
-                <span class="reading-unit">${this._t("kwh")}</span>
-              </div>
-              <div class="reading-row reading-total">
-                <span class="reading-icon"></span>
-                <span class="reading-label">${this._t("total")}:</span>
-                <span class="lcd-value lcd-total">${this._fmt(a.reading_total)}</span>
-                <span class="reading-unit">${this._t("kwh")}</span>
+              <div class="readings-grid">
+                <div class="readings-col">
+                  <div class="col-title">${this._t("meter_reading")}</div>
+                  <div class="grid-row">
+                    <ha-icon icon="mdi:white-balance-sunny" style="--mdc-icon-size:14px;color:#ffa726;"></ha-icon>
+                    <span class="grid-label">${this._t("day")}</span>
+                    <span class="lcd-value">${this._fmt(a.reading_day)}</span>
+                  </div>
+                  <div class="grid-row">
+                    <ha-icon icon="mdi:weather-night" style="--mdc-icon-size:14px;color:#42a5f5;"></ha-icon>
+                    <span class="grid-label">${this._t("night")}</span>
+                    <span class="lcd-value">${this._fmt(a.reading_night)}</span>
+                  </div>
+                  <div class="grid-row grid-total">
+                    <span style="width:14px;"></span>
+                    <span class="grid-label">${this._t("total")}</span>
+                    <span class="lcd-value lcd-total">${this._fmt(a.reading_total)}</span>
+                  </div>
+                </div>
+                <div class="readings-col">
+                  <div class="col-title">${this._t("today")}</div>
+                  <div class="grid-row">
+                    <ha-icon icon="mdi:white-balance-sunny" style="--mdc-icon-size:14px;color:#ffa726;"></ha-icon>
+                    <span class="grid-label">${this._t("day")}</span>
+                    <span class="lcd-value lcd-today">${this._fmt(a.today_day)}</span>
+                  </div>
+                  <div class="grid-row">
+                    <ha-icon icon="mdi:weather-night" style="--mdc-icon-size:14px;color:#42a5f5;"></ha-icon>
+                    <span class="grid-label">${this._t("night")}</span>
+                    <span class="lcd-value lcd-today">${this._fmt(a.today_night)}</span>
+                  </div>
+                  <div class="grid-row grid-total">
+                    <span style="width:14px;"></span>
+                    <span class="grid-label">${this._t("total")}</span>
+                    <span class="lcd-value lcd-today">${this._fmt(a.today_total)}</span>
+                  </div>
+                </div>
               </div>
             ` : `
-              <div class="reading-row reading-total">
-                <span class="reading-icon"></span>
-                <span class="reading-label">${this._t("total")}:</span>
-                <span class="lcd-value lcd-total">${this._fmt(a.reading_total)}</span>
-                <span class="reading-unit">${this._t("kwh")}</span>
-              </div>
-            `}
-          </div>
-
-          <!-- Today's consumption -->
-          <div class="section">
-            <div class="section-title">${this._t("today")}</div>
-            ${isDual ? `
-              <div class="reading-row">
-                <span class="reading-icon"><ha-icon icon="mdi:white-balance-sunny" style="--mdc-icon-size:16px;color:#ffa726;"></ha-icon></span>
-                <span class="reading-label">${this._t("day")}:</span>
-                <span class="lcd-value lcd-today">${this._fmt(a.today_day)}</span>
-                <span class="reading-unit">${this._t("kwh")}</span>
-              </div>
-              <div class="reading-row">
-                <span class="reading-icon"><ha-icon icon="mdi:weather-night" style="--mdc-icon-size:16px;color:#42a5f5;"></ha-icon></span>
-                <span class="reading-label">${this._t("night")}:</span>
-                <span class="lcd-value lcd-today">${this._fmt(a.today_night)}</span>
-                <span class="reading-unit">${this._t("kwh")}</span>
-              </div>
-              <div class="reading-row reading-total">
-                <span class="reading-icon"></span>
-                <span class="reading-label">${this._t("total")}:</span>
-                <span class="lcd-value lcd-today">${this._fmt(a.today_total)}</span>
-                <span class="reading-unit">${this._t("kwh")}</span>
-              </div>
-            ` : `
-              <div class="reading-row reading-total">
-                <span class="reading-icon"></span>
-                <span class="reading-label">${this._t("total")}:</span>
-                <span class="lcd-value lcd-today">${this._fmt(a.today_total)}</span>
-                <span class="reading-unit">${this._t("kwh")}</span>
+              <div class="readings-grid">
+                <div class="readings-col">
+                  <div class="col-title">${this._t("meter_reading")}</div>
+                  <div class="grid-row">
+                    <span class="grid-label">${this._t("total")}</span>
+                    <span class="lcd-value lcd-total">${this._fmt(a.reading_total)}</span>
+                  </div>
+                </div>
+                <div class="readings-col">
+                  <div class="col-title">${this._t("today")}</div>
+                  <div class="grid-row">
+                    <span class="grid-label">${this._t("total")}</span>
+                    <span class="lcd-value lcd-today">${this._fmt(a.today_total)}</span>
+                  </div>
+                </div>
               </div>
             `}
           </div>
@@ -629,36 +626,50 @@ class EnergyMeterCard extends HTMLElement {
         letter-spacing: 1px;
       }
 
-      /* Meter readings */
-      .reading-row {
+      /* Readings grid (meter + today side by side) */
+      .readings-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .readings-col {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .col-title {
+        font-size: 0.7em;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        color: #78909c;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+      .grid-row {
         display: flex;
         align-items: center;
-        gap: 8px;
-        margin-bottom: 6px;
+        gap: 4px;
       }
-      .reading-row:last-child {
-        margin-bottom: 0;
-      }
-      .reading-icon {
-        width: 20px;
-        display: flex;
-        justify-content: center;
-      }
-      .reading-label {
-        width: 60px;
-        font-size: 0.85em;
+      .grid-label {
+        font-size: 0.75em;
         color: #90a4ae;
+        min-width: 30px;
+      }
+      .grid-total {
+        margin-top: 2px;
+        padding-top: 4px;
+        border-top: 1px solid rgba(255,255,255,0.06);
       }
       .lcd-value {
         flex: 1;
         text-align: right;
         font-family: 'Courier New', 'Consolas', 'Liberation Mono', monospace;
-        font-size: 1.3em;
+        font-size: 1.1em;
         font-weight: bold;
         color: #00e676;
-        letter-spacing: 1px;
+        letter-spacing: 0.5px;
         text-shadow: 0 0 6px rgba(0, 230, 118, 0.3);
-        padding: 2px 8px;
+        padding: 2px 6px;
         background: rgba(0, 230, 118, 0.05);
         border-radius: 4px;
       }
@@ -666,17 +677,12 @@ class EnergyMeterCard extends HTMLElement {
         color: #00e5ff;
         text-shadow: 0 0 6px rgba(0, 229, 255, 0.3);
         background: rgba(0, 229, 255, 0.05);
-        font-size: 1.4em;
+        font-size: 1.15em;
       }
       .lcd-today {
         color: #ab47bc;
         text-shadow: 0 0 6px rgba(171, 71, 188, 0.3);
         background: rgba(171, 71, 188, 0.05);
-      }
-      .reading-total {
-        margin-top: 4px;
-        padding-top: 6px;
-        border-top: 1px solid rgba(255,255,255,0.06);
       }
       .reading-unit {
         width: 65px;
