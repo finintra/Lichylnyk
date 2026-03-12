@@ -120,11 +120,42 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             ):
                 if key in svc_data:
                     new_data[key] = float(svc_data[key])
-            hass.config_entries.async_update_entry(entry_obj, data=new_data)
-            # Also update in-memory config
+
+            # Update stored data and persist BEFORE async_update_entry
+            # (which triggers a reload via async_update_options)
             eid = entry_obj.entry_id
             if eid in hass.data[DOMAIN] and isinstance(hass.data[DOMAIN][eid], dict):
                 hass.data[DOMAIN][eid]["config"] = new_data
+                entry_stored = hass.data[DOMAIN][eid]["stored"]
+                entry_store = hass.data[DOMAIN][eid]["store"]
+                readings_changed = False
+                if "initial_day" in svc_data:
+                    entry_stored["reading_day"] = float(svc_data["initial_day"])
+                    readings_changed = True
+                if "initial_night" in svc_data:
+                    entry_stored["reading_night"] = float(svc_data["initial_night"])
+                    readings_changed = True
+                if "initial_total" in svc_data:
+                    entry_stored["reading_total"] = float(svc_data["initial_total"])
+                    readings_changed = True
+                if "last_report_day" in svc_data:
+                    entry_stored["snapshot_day"] = float(svc_data["last_report_day"])
+                if "last_report_night" in svc_data:
+                    entry_stored["snapshot_night"] = float(svc_data["last_report_night"])
+                if "last_report_total" in svc_data:
+                    entry_stored["snapshot_total"] = float(svc_data["last_report_total"])
+                if not entry_stored.get("snapshot_time"):
+                    entry_stored["snapshot_time"] = datetime.now().isoformat()
+                if readings_changed:
+                    # Reset daily checkpoints to new readings (avoid negative daily values)
+                    entry_stored["daily_day"] = entry_stored.get("reading_day", 0)
+                    entry_stored["daily_night"] = entry_stored.get("reading_night", 0)
+                    entry_stored["daily_total"] = entry_stored.get("reading_total", 0)
+                    # Reset energy tracking so delta starts from 0
+                    entry_stored["last_energy"] = None
+                await entry_store.async_save(dict(entry_stored))
+
+            hass.config_entries.async_update_entry(entry_obj, data=new_data)
         async_dispatcher_send(hass, f"{DOMAIN}_settings_updated")
 
     if not hass.services.has_service(DOMAIN, SERVICE_RESET_READINGS):

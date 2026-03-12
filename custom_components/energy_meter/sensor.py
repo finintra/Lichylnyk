@@ -216,13 +216,13 @@ class EnergyMeterMainSensor(RestoreEntity, SensorEntity):
         daily_night = self._stored.get("daily_night", self._reading_night)
         daily_total = self._stored.get("daily_total", self._reading_total)
         if self._config.get(CONF_TARIFF_TYPE) == TARIFF_DUAL:
-            attrs["today_day"] = round(self._reading_day - daily_day, 3)
-            attrs["today_night"] = round(self._reading_night - daily_night, 3)
-            attrs["today_total"] = round(
+            attrs["today_day"] = max(0, round(self._reading_day - daily_day, 3))
+            attrs["today_night"] = max(0, round(self._reading_night - daily_night, 3))
+            attrs["today_total"] = max(0, round(
                 (self._reading_day + self._reading_night) - (daily_day + daily_night), 3
-            )
+            ))
         else:
-            attrs["today_total"] = round(self._reading_total - daily_total, 3)
+            attrs["today_total"] = max(0, round(self._reading_total - daily_total, 3))
 
         # Voltage info per configured phase
         for attr_name in VOLTAGE_ATTRS[:self._phase_count]:
@@ -403,6 +403,10 @@ class EnergyMeterMainSensor(RestoreEntity, SensorEntity):
                 self._stored["snapshot_total"] = float(cfg[CONF_LAST_REPORT_TOTAL])
             if not self._stored.get("snapshot_time"):
                 self._stored["snapshot_time"] = datetime.now().isoformat()
+            # Reset daily checkpoints to new readings (avoid negative daily values)
+            self._stored["daily_day"] = self._reading_day
+            self._stored["daily_night"] = self._reading_night
+            self._stored["daily_total"] = self._reading_total
             # Reset energy tracking — counter starts from 0 after entering new readings
             self._last_energy = None
             self._stored["last_energy"] = None
