@@ -42,7 +42,8 @@ const TRANSLATIONS = {
     last_report_night: "Last report night",
     last_report_total: "Last report total",
     next_outage: "Next planned outage",
-    outage_now: "Outage in progress",
+    outage_current: "Current outage",
+    outage_next: "Next outage",
     outage_from: "from",
     outage_to: "to",
     no_outages: "No planned outages",
@@ -85,7 +86,8 @@ const TRANSLATIONS = {
     last_report_night: "\u0417\u0432\u0456\u0442 \u043d\u0456\u0447",
     last_report_total: "\u0417\u0432\u0456\u0442 \u0437\u0430\u0433\u0430\u043b\u044c\u043d\u0438\u0439",
     next_outage: "Найближче відключення",
-    outage_now: "Відключення зараз",
+    outage_current: "Поточне відключення",
+    outage_next: "Наступне відключення",
     outage_from: "з",
     outage_to: "до",
     no_outages: "Немає запланованих відключень",
@@ -171,6 +173,15 @@ class EnergyMeterCard extends HTMLElement {
       return `${hh}:${mm}, ${dd}.${mo}`;
     } catch {
       return iso;
+    }
+  }
+
+  _isValidOutageRange(startIso, endIso) {
+    if (!startIso || !endIso) return false;
+    try {
+      return new Date(endIso) > new Date(startIso);
+    } catch {
+      return false;
     }
   }
 
@@ -296,12 +307,23 @@ class EnergyMeterCard extends HTMLElement {
             <div class="outage-banner outage-active">
               <div class="outage-title">
                 <ha-icon icon="mdi:flash-off" style="--mdc-icon-size:16px;color:#ff5252;"></ha-icon>
-                <span>${this._t("outage_now")}</span>
+                <span>${this._t("outage_current")}</span>
               </div>
               <div class="outage-time">
                 ${this._t("outage_to")} ${this._fmtOutage(a.outage_event_end)}
               </div>
             </div>
+            ${a.next_outage_start ? `
+              <div class="outage-banner">
+                <div class="outage-title">
+                  <ha-icon icon="mdi:flash-alert" style="--mdc-icon-size:16px;color:#ffa726;"></ha-icon>
+                  <span>${this._t("outage_next")}</span>
+                </div>
+                <div class="outage-time">
+                  ${this._t("outage_from")} ${this._fmtOutage(a.next_outage_start)}
+                </div>
+              </div>
+            ` : ""}
           ` : a.next_outage_start ? `
             <div class="outage-banner">
               <div class="outage-title">
@@ -309,7 +331,7 @@ class EnergyMeterCard extends HTMLElement {
                 <span>${this._t("next_outage")}</span>
               </div>
               <div class="outage-time">
-                ${this._t("outage_from")} ${this._fmtOutage(a.next_outage_start)} ${this._t("outage_to")} ${this._fmtOutage(a.next_outage_end)}
+                ${this._t("outage_from")} ${this._fmtOutage(a.next_outage_start)}${this._isValidOutageRange(a.next_outage_start, a.next_outage_end) ? ` ${this._t("outage_to")} ${this._fmtOutage(a.next_outage_end)}` : ""}
               </div>
             </div>
           ` : ""}
